@@ -24,22 +24,52 @@
 			<Item Name="motorsGlobalVar.vi" Type="VI" URL="../Basic-VIs/motorsGlobalVar.vi"/>
 			<Item Name="motorMoveABS.vi" Type="VI" URL="../Basic-VIs/motorMoveABS.vi"/>
 			<Item Name="motorMove.vi" Type="VI" URL="../Basic-VIs/motorMove.vi"/>
+			<Item Name="motorMoveVector.vi" Type="VI" URL="../Basic-VIs/motorMoveVector.vi"/>
 			<Item Name="openMotor-83844149.vi" Type="VI" URL="../Basic-VIs/openMotor-83844149.vi"/>
 			<Item Name="openMotor-83844079.vi" Type="VI" URL="../Basic-VIs/openMotor-83844079.vi"/>
 			<Item Name="whatMotorIs.vi" Type="VI" URL="../Basic-VIs/whatMotorIs.vi"/>
 			<Item Name="swapMotors.vi" Type="VI" URL="../Basic-VIs/swapMotors.vi"/>
 		</Item>
-		<Item Name="Kinesis-basic_program.vi" Type="VI" URL="../Kinesis-basic_program.vi"/>
+		<Item Name="Old-Controllers" Type="Folder">
+			<Item Name="getPosition-Old-Controllers.vi" Type="VI" URL="../Basic-VIs/getPosition-Old-Controllers.vi"/>
+			<Item Name="motorMove-Old-Controllers.vi" Type="VI" URL="../Basic-VIs/motorMove-Old-Controllers.vi"/>
+			<Item Name="isHomed-Old-Controllers.vi" Type="VI" URL="../Basic-VIs/isHomed-Old-Controllers.vi"/>
+			<Item Name="smartHome-Old-Controllers.vi" Type="VI" URL="../Basic-VIs/smartHome-Old-Controllers.vi"/>
+			<Item Name="motor-XYZ-GlobalVar.vi" Type="VI" URL="../Basic-VIs/motor-XYZ-GlobalVar.vi"/>
+		</Item>
+		<Item Name="Kinesis-program.vi" Type="VI" URL="../Kinesis-program.vi"/>
+		<Item Name="teste-motor-1.vi" Type="VI" URL="../teste-motor-1.vi"/>
+		<Item Name="teste-motor-2.vi" Type="VI" URL="../teste-motor-2.vi"/>
+		<Item Name="teste-motor-3.vi" Type="VI" URL="../teste-motor-3.vi"/>
+		<Item Name="teste-motor-3-2.vi" Type="VI" URL="../teste-motor-3-2.vi"/>
+		<Item Name="testehome.vi" Type="VI" URL="../testehome.vi"/>
+		<Item Name="teste-global.vi" Type="VI" URL="../teste-global.vi"/>
+		<Item Name="analise-motor.vi" Type="VI" URL="../analise-motor.vi"/>
+		<Item Name="teste-motor-3-3.vi" Type="VI" URL="../teste-motor-3-3.vi"/>
 		<Item Name="Kinesis-Microestruturacao_XY.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY.vi"/>
+		<Item Name="Kinesis_XY-AndreTec-Kelly.vi" Type="VI" URL="../Kinesis_XY-AndreTec-Kelly.vi"/>
+		<Item Name="Kinesis-Microestruturacao_XY_vector.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY_vector.vi"/>
+		<Item Name="Kinesis-program-one-motor.vi" Type="VI" URL="../Kinesis-program-one-motor.vi"/>
+		<Item Name="Kinesis-program-one-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-one-motor-Old-Controllers.vi"/>
+		<Item Name="Kinesis-program-two-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-two-motor-Old-Controllers.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
 				<Item Name="subDisplayMessage.vi" Type="VI" URL="/&lt;vilib&gt;/express/express output/DisplayMessageBlock.llb/subDisplayMessage.vi"/>
+				<Item Name="NI_AAL_SigProc.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AAL_SigProc.lvlib"/>
 			</Item>
 			<Item Name="Thorlabs.MotionControl.Controls.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.Controls.dll"/>
 			<Item Name="Thorlabs.MotionControl.GenericMotorCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.GenericMotorCLI.dll"/>
 			<Item Name="Thorlabs.MotionControl.TCube.DCServoCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.TCube.DCServoCLI.dll"/>
 			<Item Name="Thorlabs.MotionControl.DeviceManagerCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.DeviceManagerCLI.dll"/>
+			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
+			<Item Name="Motor-Close.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Close.vi"/>
+			<Item Name="Motor-Inicia-1.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Inicia-1.vi"/>
+			<Item Name="Motor-Inicia-2.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Inicia-2.vi"/>
+			<Item Name="Motor-Zera-Pos.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Zera-Pos.vi"/>
+			<Item Name="Motor-Setup.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Setup.vi"/>
+			<Item Name="Motor-Move-Abs.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Move-Abs.vi"/>
+			<Item Name="Motor-Pega-Pos.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Pega-Pos.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>
