@@ -38,8 +38,11 @@
 			<Item Name="motor-XYZ-GlobalVar.vi" Type="VI" URL="../Basic-VIs/motor-XYZ-GlobalVar.vi"/>
 		</Item>
 		<Item Name="Kinesis-Microestruturacao_XY.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY.vi"/>
+		<Item Name="Kinesis-Microestruturacao_XY_vector.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY_vector.vi"/>
 		<Item Name="Kinesis-program-one-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-one-motor-Old-Controllers.vi"/>
 		<Item Name="Kinesis-program-two-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-two-motor-Old-Controllers.vi"/>
+		<Item Name="Kinesis-Microestruturacao_XY-Old-Controllers.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY-Old-Controllers.vi"/>
+		<Item Name="Kinesis-Microestruturacao_XY_vector-Old-Controllers.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY_vector-Old-Controllers.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
@@ -49,6 +52,7 @@
 			<Item Name="Thorlabs.MotionControl.GenericMotorCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.GenericMotorCLI.dll"/>
 			<Item Name="Thorlabs.MotionControl.TCube.DCServoCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.TCube.DCServoCLI.dll"/>
 			<Item Name="Thorlabs.MotionControl.DeviceManagerCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.DeviceManagerCLI.dll"/>
+			<Item Name="motorMoveVector-Old-Controllers.vi" Type="VI" URL="../Basic-VIs/motorMoveVector-Old-Controllers.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>
