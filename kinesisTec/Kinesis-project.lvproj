@@ -48,6 +48,8 @@
 		</Item>
 		<Item Name="Programs" Type="Folder">
 			<Item Name="Kinesis-get-motor-ID.vi" Type="VI" URL="../Kinesis-get-motor-ID.vi"/>
+			<Item Name="Kinesis-Electronics-1.vi" Type="VI" URL="../Kinesis-Electronics-1.vi"/>
+			<Item Name="Kinesis-Electronics-1-Old-Controllers.vi" Type="VI" URL="../Kinesis-Electronics-1-Old-Controllers.vi"/>
 			<Item Name="Kinesis-program.vi" Type="VI" URL="../Kinesis-program.vi"/>
 			<Item Name="Kinesis-program-one-motor.vi" Type="VI" URL="../Kinesis-program-one-motor.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY.vi"/>
