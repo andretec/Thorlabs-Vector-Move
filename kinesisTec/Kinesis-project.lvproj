@@ -26,6 +26,7 @@
 			<Item Name="motorMoveABS.vi" Type="VI" URL="../Basic-VIs/motorMoveABS.vi"/>
 			<Item Name="motorMove.vi" Type="VI" URL="../Basic-VIs/motorMove.vi"/>
 			<Item Name="motorMoveVector.vi" Type="VI" URL="../Basic-VIs/motorMoveVector.vi"/>
+			<Item Name="openMotor.vi" Type="VI" URL="../Basic-VIs/openMotor.vi"/>
 			<Item Name="swapMotors.vi" Type="VI" URL="../Basic-VIs/swapMotors.vi"/>
 			<Item Name="whatMotorIs.vi" Type="VI" URL="../Basic-VIs/whatMotorIs.vi"/>
 		</Item>
@@ -48,6 +49,7 @@
 		</Item>
 		<Item Name="Programs" Type="Folder">
 			<Item Name="Kinesis-get-motor-ID.vi" Type="VI" URL="../Kinesis-get-motor-ID.vi"/>
+			<Item Name="Kinesis-get-motor-ID-v2.vi" Type="VI" URL="../Kinesis-get-motor-ID-v2.vi"/>
 			<Item Name="Kinesis-Electronics-1.vi" Type="VI" URL="../Kinesis-Electronics-1.vi"/>
 			<Item Name="Kinesis-Electronics-1-Old-Controllers.vi" Type="VI" URL="../Kinesis-Electronics-1-Old-Controllers.vi"/>
 			<Item Name="Kinesis-program.vi" Type="VI" URL="../Kinesis-program.vi"/>
