@@ -55,6 +55,7 @@
 			<Item Name="Kinesis-program.vi" Type="VI" URL="../Kinesis-program.vi"/>
 			<Item Name="Kinesis-program-one-motor.vi" Type="VI" URL="../Kinesis-program-one-motor.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY.vi"/>
+			<Item Name="Kinesis-Microestruturacao_XY-v2.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY-v2.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY_vector.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY_vector.vi"/>
 			<Item Name="Kinesis-program-one-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-one-motor-Old-Controllers.vi"/>
 			<Item Name="Kinesis-program-two-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-two-motor-Old-Controllers.vi"/>
