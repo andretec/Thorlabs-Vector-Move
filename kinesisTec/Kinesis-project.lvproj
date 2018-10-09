@@ -28,6 +28,7 @@
 			<Item Name="motorMoveVector.vi" Type="VI" URL="../Basic-VIs/motorMoveVector.vi"/>
 			<Item Name="openMotor.vi" Type="VI" URL="../Basic-VIs/openMotor.vi"/>
 			<Item Name="swapMotors.vi" Type="VI" URL="../Basic-VIs/swapMotors.vi"/>
+			<Item Name="waitTarget.vi" Type="VI" URL="../Basic-VIs/waitTarget.vi"/>
 			<Item Name="whatMotorIs.vi" Type="VI" URL="../Basic-VIs/whatMotorIs.vi"/>
 		</Item>
 		<Item Name="Motors ID" Type="Folder">
