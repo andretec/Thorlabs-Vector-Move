@@ -29,7 +29,8 @@
 			<Item Name="openMotor.vi" Type="VI" URL="../Basic-VIs/openMotor.vi"/>
 			<Item Name="swapMotors.vi" Type="VI" URL="../Basic-VIs/swapMotors.vi"/>
 			<Item Name="waitTarget.vi" Type="VI" URL="../Basic-VIs/waitTarget.vi"/>
-			<Item Name="waitTarget-XY.vi" Type="VI" URL="../Basic-VIs/waitTarget-XY.vi"/>
+			<Item Name="waitTarget-X.vi" Type="VI" URL="../Basic-VIs/waitTarget-X.vi"/>
+			<Item Name="waitTarget-Y.vi" Type="VI" URL="../Basic-VIs/waitTarget-Y.vi"/>
 			<Item Name="whatMotorIs.vi" Type="VI" URL="../Basic-VIs/whatMotorIs.vi"/>
 		</Item>
 		<Item Name="Motors ID" Type="Folder">
@@ -60,6 +61,7 @@
 			<Item Name="Kinesis-Microestruturacao_XY-v2.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY-v2.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY_vector.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY_vector.vi"/>
 			<Item Name="circuits-resistor.vi" Type="VI" URL="../Basic-VIs/circuits-resistor.vi"/>
+			<Item Name="circuits-resistor-2.vi" Type="VI" URL="../Basic-VIs/circuits-resistor-2.vi"/>
 			<Item Name="Kinesis-Microestruturacao-Circuits.vi" Type="VI" URL="../Kinesis-Microestruturacao-Circuits.vi"/>
 			<Item Name="Kinesis-program-one-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-one-motor-Old-Controllers.vi"/>
 			<Item Name="Kinesis-program-two-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-two-motor-Old-Controllers.vi"/>
