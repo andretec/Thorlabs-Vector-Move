@@ -57,6 +57,8 @@
 				<Item Name="circuits-capacitor.vi" Type="VI" URL="../Basic-VIs/circuits-capacitor.vi"/>
 				<Item Name="circuits-resistor.vi" Type="VI" URL="../Basic-VIs/circuits-resistor.vi"/>
 				<Item Name="circuits-resistor-2.vi" Type="VI" URL="../Basic-VIs/circuits-resistor-2.vi"/>
+				<Item Name="circuits-terminal.vi" Type="VI" URL="../Basic-VIs/circuits-terminal.vi"/>
+				<Item Name="Thorlabs-Shutter-Toggle.vi" Type="VI" URL="../Basic-VIs/Thorlabs-Shutter-Toggle.vi"/>
 			</Item>
 			<Item Name="Kinesis-get-motor-ID.vi" Type="VI" URL="../Kinesis-get-motor-ID.vi"/>
 			<Item Name="Kinesis-get-motor-ID-v2.vi" Type="VI" URL="../Kinesis-get-motor-ID-v2.vi"/>
@@ -67,7 +69,6 @@
 			<Item Name="Kinesis-Microestruturacao_XY.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY-v2.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY-v2.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY_vector.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY_vector.vi"/>
-			<Item Name="Thorlabs-Shutter-Toggle.vi" Type="VI" URL="../Basic-VIs/Thorlabs-Shutter-Toggle.vi"/>
 			<Item Name="Kinesis-program-one-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-one-motor-Old-Controllers.vi"/>
 			<Item Name="Kinesis-program-two-motor-Old-Controllers.vi" Type="VI" URL="../Kinesis-program-two-motor-Old-Controllers.vi"/>
 			<Item Name="Kinesis-Microestruturacao_XY-Old-Controllers.vi" Type="VI" URL="../Kinesis-Microestruturacao_XY-Old-Controllers.vi"/>
@@ -83,9 +84,9 @@
 			<Item Name="teste-global.vi" Type="VI" URL="../teste-global.vi"/>
 			<Item Name="analise-motor.vi" Type="VI" URL="../analise-motor.vi"/>
 			<Item Name="teste-motor-3-3.vi" Type="VI" URL="../teste-motor-3-3.vi"/>
+			<Item Name="teste-circle.vi" Type="VI" URL="../teste-circle.vi"/>
 		</Item>
-		<Item Name="teste-circle.vi" Type="VI" URL="../teste-circle.vi"/>
-		<Item Name="circuits-terminal.vi" Type="VI" URL="../Basic-VIs/circuits-terminal.vi"/>
+		<Item Name="circuits-gound.vi" Type="VI" URL="../Basic-VIs/circuits-gound.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
