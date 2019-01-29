@@ -109,6 +109,8 @@
 			<Item Name="Motor-Setup.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Setup.vi"/>
 			<Item Name="Motor-Move-Abs.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Move-Abs.vi"/>
 			<Item Name="Motor-Pega-Pos.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Pega-Pos.vi"/>
+			<Item Name="openMotor-83823484.vi" Type="VI" URL="../Basic-VIs/openMotor-83823484.vi"/>
+			<Item Name="openMotor-83823114.vi" Type="VI" URL="../Basic-VIs/openMotor-83823114.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>
