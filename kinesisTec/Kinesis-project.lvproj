@@ -55,6 +55,7 @@
 			<Item Name="Circuits" Type="Folder">
 				<Item Name="Kinesis-Microestruturacao-Circuits.vi" Type="VI" URL="../Kinesis-Microestruturacao-Circuits.vi"/>
 				<Item Name="circuits-capacitor.vi" Type="VI" URL="../Basic-VIs/circuits-capacitor.vi"/>
+				<Item Name="circuits-gound.vi" Type="VI" URL="../Basic-VIs/circuits-gound.vi"/>
 				<Item Name="circuits-resistor.vi" Type="VI" URL="../Basic-VIs/circuits-resistor.vi"/>
 				<Item Name="circuits-resistor-2.vi" Type="VI" URL="../Basic-VIs/circuits-resistor-2.vi"/>
 				<Item Name="circuits-terminal.vi" Type="VI" URL="../Basic-VIs/circuits-terminal.vi"/>
@@ -86,7 +87,6 @@
 			<Item Name="teste-motor-3-3.vi" Type="VI" URL="../teste-motor-3-3.vi"/>
 			<Item Name="teste-circle.vi" Type="VI" URL="../teste-circle.vi"/>
 		</Item>
-		<Item Name="circuits-gound.vi" Type="VI" URL="../Basic-VIs/circuits-gound.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
