@@ -32,6 +32,7 @@
 			<Item Name="waitTarget.vi" Type="VI" URL="../Basic-VIs/waitTarget.vi"/>
 			<Item Name="waitTarget-X.vi" Type="VI" URL="../Basic-VIs/waitTarget-X.vi"/>
 			<Item Name="waitTarget-Y.vi" Type="VI" URL="../Basic-VIs/waitTarget-Y.vi"/>
+			<Item Name="waitTarget-XY.vi" Type="VI" URL="../Basic-VIs/waitTarget-XY.vi"/>
 			<Item Name="whatMotorIs.vi" Type="VI" URL="../Basic-VIs/whatMotorIs.vi"/>
 		</Item>
 		<Item Name="Motors ID" Type="Folder">
@@ -77,6 +78,7 @@
 		</Item>
 		<Item Name="Andre-Tests" Type="Folder">
 			<Item Name="Kinesis_XY-AndreTec-Kelly.vi" Type="VI" URL="../Kinesis_XY-AndreTec-Kelly.vi"/>
+			<Item Name="Kinesis-Teste-Vector-1.vi" Type="VI" URL="../Kinesis-Teste-Vector-1.vi"/>
 			<Item Name="teste-motor-1.vi" Type="VI" URL="../teste-motor-1.vi"/>
 			<Item Name="teste-motor-2.vi" Type="VI" URL="../teste-motor-2.vi"/>
 			<Item Name="teste-motor-3.vi" Type="VI" URL="../teste-motor-3.vi"/>
