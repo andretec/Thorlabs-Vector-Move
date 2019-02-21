@@ -21,6 +21,8 @@
 			<Item Name="isMoving.vi" Type="VI" URL="../Basic-VIs/isMoving.vi"/>
 			<Item Name="isHomed.vi" Type="VI" URL="../Basic-VIs/isHomed.vi"/>
 			<Item Name="smartHome.vi" Type="VI" URL="../Basic-VIs/smartHome.vi"/>
+			<Item Name="move-REL-RAW.vi" Type="VI" URL="../Basic-VIs/move-REL-RAW.vi"/>
+			<Item Name="move-ABS-RAW.vi" Type="VI" URL="../Basic-VIs/move-ABS-RAW.vi"/>
 			<Item Name="motorConfig.vi" Type="VI" URL="../Basic-VIs/motorConfig.vi"/>
 			<Item Name="motorsGlobalVar.vi" Type="VI" URL="../Basic-VIs/motorsGlobalVar.vi"/>
 			<Item Name="motorMoveABS.vi" Type="VI" URL="../Basic-VIs/motorMoveABS.vi"/>
@@ -28,6 +30,8 @@
 			<Item Name="move-vector.vi" Type="VI" URL="../Basic-VIs/move-vector.vi"/>
 			<Item Name="motorMoveVector.vi" Type="VI" URL="../Basic-VIs/motorMoveVector.vi"/>
 			<Item Name="openMotor.vi" Type="VI" URL="../Basic-VIs/openMotor.vi"/>
+			<Item Name="resetPosition.vi" Type="VI" URL="../Basic-VIs/resetPosition.vi"/>
+			<Item Name="setLimitsPolicy.vi" Type="VI" URL="../Basic-VIs/setLimitsPolicy.vi"/>
 			<Item Name="swapMotors.vi" Type="VI" URL="../Basic-VIs/swapMotors.vi"/>
 			<Item Name="waitTarget.vi" Type="VI" URL="../Basic-VIs/waitTarget.vi"/>
 			<Item Name="waitTarget-X.vi" Type="VI" URL="../Basic-VIs/waitTarget-X.vi"/>
@@ -79,6 +83,7 @@
 		<Item Name="Andre-Tests" Type="Folder">
 			<Item Name="Kinesis_XY-AndreTec-Kelly.vi" Type="VI" URL="../Kinesis_XY-AndreTec-Kelly.vi"/>
 			<Item Name="Kinesis-Teste-Vector-1.vi" Type="VI" URL="../Kinesis-Teste-Vector-1.vi"/>
+			<Item Name="Kinesis-Teste-Vector-2.vi" Type="VI" URL="../Kinesis-Teste-Vector-2.vi"/>
 			<Item Name="teste-motor-1.vi" Type="VI" URL="../teste-motor-1.vi"/>
 			<Item Name="teste-motor-2.vi" Type="VI" URL="../teste-motor-2.vi"/>
 			<Item Name="teste-motor-3.vi" Type="VI" URL="../teste-motor-3.vi"/>
@@ -89,6 +94,9 @@
 			<Item Name="teste-motor-3-3.vi" Type="VI" URL="../teste-motor-3-3.vi"/>
 			<Item Name="teste-circle.vi" Type="VI" URL="../teste-circle.vi"/>
 		</Item>
+		<Item Name="decodex" Type="Folder" URL="../../decodex">
+			<Property Name="NI.DISK" Type="Bool">true</Property>
+		</Item>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
@@ -98,6 +106,8 @@
 				<Item Name="VISA Configure Serial Port (Instr).vi" Type="VI" URL="/&lt;vilib&gt;/Instr/_visa.llb/VISA Configure Serial Port (Instr).vi"/>
 				<Item Name="VISA Configure Serial Port (Serial Instr).vi" Type="VI" URL="/&lt;vilib&gt;/Instr/_visa.llb/VISA Configure Serial Port (Serial Instr).vi"/>
 				<Item Name="Clear Errors.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Clear Errors.vi"/>
+				<Item Name="Waveform Scale and Offset.vi" Type="VI" URL="/&lt;vilib&gt;/Waveform/WDTOps.llb/Waveform Scale and Offset.vi"/>
+				<Item Name="subFile Dialog.vi" Type="VI" URL="/&lt;vilib&gt;/express/express input/FileDialogBlock.llb/subFile Dialog.vi"/>
 			</Item>
 			<Item Name="Thorlabs.MotionControl.Controls.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.Controls.dll"/>
 			<Item Name="Thorlabs.MotionControl.GenericMotorCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.GenericMotorCLI.dll"/>
