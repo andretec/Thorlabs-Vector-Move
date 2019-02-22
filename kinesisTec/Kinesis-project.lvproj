@@ -84,6 +84,7 @@
 			<Item Name="Kinesis_XY-AndreTec-Kelly.vi" Type="VI" URL="../Kinesis_XY-AndreTec-Kelly.vi"/>
 			<Item Name="Kinesis-Teste-Vector-1.vi" Type="VI" URL="../Kinesis-Teste-Vector-1.vi"/>
 			<Item Name="Kinesis-Teste-Vector-2.vi" Type="VI" URL="../Kinesis-Teste-Vector-2.vi"/>
+			<Item Name="Kinesis-Teste-Vector-3.vi" Type="VI" URL="../Kinesis-Teste-Vector-3.vi"/>
 			<Item Name="teste-motor-1.vi" Type="VI" URL="../teste-motor-1.vi"/>
 			<Item Name="teste-motor-2.vi" Type="VI" URL="../teste-motor-2.vi"/>
 			<Item Name="teste-motor-3.vi" Type="VI" URL="../teste-motor-3.vi"/>
@@ -97,6 +98,7 @@
 		<Item Name="decodex" Type="Folder" URL="../../decodex">
 			<Property Name="NI.DISK" Type="Bool">true</Property>
 		</Item>
+		<Item Name="checkMotorLimits.vi" Type="VI" URL="../checkMotorLimits.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
