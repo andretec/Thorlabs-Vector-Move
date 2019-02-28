@@ -14,6 +14,7 @@
 		<Item Name="Basic-VIs" Type="Folder">
 			<Property Name="NI.SortType" Type="Int">3</Property>
 			<Item Name="adjustMotors.vi" Type="VI" URL="../Basic-VIs/adjustMotors.vi"/>
+			<Item Name="checkMotorLimits.vi" Type="VI" URL="../checkMotorLimits.vi"/>
 			<Item Name="closeMotor.vi" Type="VI" URL="../Basic-VIs/closeMotor.vi"/>
 			<Item Name="getPositionABS.vi" Type="VI" URL="../Basic-VIs/getPositionABS.vi"/>
 			<Item Name="getPosition.vi" Type="VI" URL="../Basic-VIs/getPosition.vi"/>
@@ -98,7 +99,8 @@
 		<Item Name="decodex" Type="Folder" URL="../../decodex">
 			<Property Name="NI.DISK" Type="Bool">true</Property>
 		</Item>
-		<Item Name="checkMotorLimits.vi" Type="VI" URL="../checkMotorLimits.vi"/>
+		<Item Name="getPosXY.vi" Type="VI" URL="../Basic-VIs/getPosXY.vi"/>
+		<Item Name="Kinesis-Teste-Vector-4.vi" Type="VI" URL="../Kinesis-Teste-Vector-4.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="ex_CorrectErrorChain.vi" Type="VI" URL="/&lt;vilib&gt;/express/express shared/ex_CorrectErrorChain.vi"/>
