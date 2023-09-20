@@ -34,7 +34,7 @@
 
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 	
 	/// <summary> Values that represent FT_Status. </summary>
 	typedef enum FT_Status : short
@@ -59,7 +59,7 @@ extern "C"
 		MOT_BrushlessMotor = 3,
 		MOT_CustomMotor = 100,
 	} MOT_MotorTypes;
-	/// \endcond
+/// \endcond
 
 	/// <summary> Information about the device generated from serial number. </summary>
 	#pragma pack(1)
@@ -70,7 +70,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -108,24 +108,24 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
-		/// <summary> The device hardware version. </summary>
-		WORD hardwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
 		/// <summary> The device dependant data. </summary>
 		BYTE deviceDependantData[12];
+		/// <summary> The device hardware version. </summary>
+		WORD hardwareVersion;
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 
 	/// <summary> The Piezo Control Modes. </summary>
 	/// \ingroup Common
@@ -162,15 +162,15 @@ extern "C"
 		PZ_OutputTrigRepeat = 0x80, ///<Output trigger repeats.
 	} PZ_OutputLUTModes;
 
-	/// \endcond
+/// \endcond
 	
 	/// <summary> Values that represent PPC_FilterState. </summary>
-	typedef enum PPC_DerivFilterState : short
+	typedef enum PPC_DerivFilterState : byte
 	{
 		/// <summary> An enum constant representing the filter on option. </summary>
-		DerivFilterOn = 0x01,
+		DerivFilterOn = 0x1,
 		/// <summary> An enum constant representing the filter off option. </summary>
-		DerivFilterOff = 0x02,
+		DerivFilterOff = 0x2,
 	} PPC_DerivFilterState;
 
 	/// <summary> Values that represent PPC_FilterState. </summary>
@@ -237,6 +237,15 @@ extern "C"
 		Optical = 0x03,
 	} PPC_IOFeedbackSourceDefinition;
 
+	/// <summary> Values that represent PPC Feedback Polarities. </summary>
+	typedef enum PPC_FeedbackPolarity : WORD
+	{
+		/// <summary> An enum constant representing the non inverted option. </summary>
+		NonInverted = 0,
+		/// <summary> An enum constant representing the inverted option. </summary>
+		Inverted = -1
+	} PPC_FeedbackPolarity;
+
 	/// <summary> Values that represent PPC_DisplayIntensity. </summary>
 	typedef enum PPC_DisplayIntensity : short
 	{
@@ -257,11 +266,11 @@ extern "C"
 		/// <summary> PID constants integral. </summary>
 		/// <remarks> The PID Integral Gain constant, range 0 to 10000</remarks>
 		float PIDConstsI;
-		/// <summary> PID constants differential. </summary>
-		/// <remarks> The PID Differential Gain constant, range 0 to 10000</remarks>
+		/// <summary> PID constants derivative. </summary>
+		/// <remarks> The PID Derivative Gain constant, range 0 to 10000</remarks>
 		float PIDConstsD;
 		/// <summary> PID constants derivative low pass filter cut-off frequency. </summary>
-		/// <remarks> The PID Differential Gain filter, range 0 to 10000</remarks>
+		/// <remarks> The PID Derivative Gain filter, range 0 to 10000</remarks>
 		float PIDConstsDFc;
 		/// <summary> PID Derivative filter on or off. </summary>
 		/// <remarks> The Filter Enabled state:
@@ -270,6 +279,8 @@ extern "C"
 		///				<item><term>2</term><term>Filter Disabled.</term></item>
 		/// 		  </list></remarks>
 		PPC_DerivFilterState PIDDerivFilterOn;
+		/// <summary> PID index, O for normal operation </summary>
+		byte PIDIndex;
 	} PPC_PIDConsts;
 
 	/// <summary> PPC notch filter parameters. </summary>
@@ -355,8 +366,13 @@ extern "C"
 		///				<item><term>3</term><term>Off.</term></item>
 		/// 		  </list></remarks>
 		PPC_DisplayIntensity FPBrightness;
-		/// <summary> reserved field. </summary>
-		WORD reserved1;
+		/// <summary> The Feedback source polarity. </summary>
+		/// <remarks> The Feedback Polarity:
+		/// 		  <list type=table>
+		///				<item><term>0</term><term>Non Inverted.</term></item>
+		///				<item><term>-1</term><term>Inverted.</term></item>
+		/// 		  </list></remarks>
+		PPC_FeedbackPolarity feedbackPolarity;
 	} PPC_IOSettings;
 	#pragma pack()
 
@@ -489,6 +505,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	BENCHPRECISIONPIEZO_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	BENCHPRECISIONPIEZO_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	BENCHPRECISIONPIEZO_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the device to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -563,6 +592,18 @@ extern "C"
 	/// <returns> <c>true</c> if successful, false if not. </returns>
 	/// 		  \include CodeSnippet_connection1.cpp
 	BENCHPRECISIONPIEZO_API bool __cdecl PPC_LoadSettings(char const * serialNo);
+
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	BENCHPRECISIONPIEZO_API bool __cdecl PPC_LoadNamedSettings(char const * serialNo, char const *settingsName);
+
+	/// <summary>	Persist device settings to device. </summary>
+	/// <param name="serialNo">	The serial no. </param>
+	/// <returns>	True if it succeeds, false if it fails. </returns>
+	BENCHPRECISIONPIEZO_API bool __cdecl PPC_PersistSettings(char const * serialNo);
 
 	/// <summary> Disable the channel so that motor can be moved by hand. </summary>
 	/// <remarks> <I>Applies to Single Channel Precision Piezo Devices only. For multi channel use PPC2_ equivalent.</I></remarks>
@@ -740,6 +781,7 @@ extern "C"
 	/// <seealso cref="PPC_RequestPosition(char const * serialNo)" />
 	/// <seealso cref="PPC_GetPosition(char const * serialNo)" />
 	/// <seealso cref="PPC_SetPosition(char const * serialNo, short position)" />
+	/// <seealso cref="PPC_SetPositionToTolerance(char const * serialNo, short position, short tolerance)" />
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successfully requested. </returns>
 	BENCHPRECISIONPIEZO_API short __cdecl PPC_RequestActualPosition(char const * serialNo);
 
@@ -770,6 +812,7 @@ extern "C"
 	/// <summary> Requests that the Position Control Mode be read from the device. </summary>
 	/// <remarks> <I>Applies to Single Channel Precision Piezo Devices only. For multi channel use PPC2_ equivalent.</I></remarks>
 	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns>	True if it succeeds, false if it fails. </returns>
 	/// <seealso cref="PPC_GetPositionControlMode(char const * serialNo)" />
 	/// <seealso cref="PPC_SetPositionControlMode(char const * serialNo, PZ_ControlModeTypes mode)" />
 	BENCHPRECISIONPIEZO_API bool __cdecl PPC_RequestPositionControlMode(char const * serialNo);
@@ -904,6 +947,7 @@ extern "C"
 	/// 		  range -32767 to 32767, equivalent to -100 to 100%. </returns>
 	/// <seealso cref="PPC_RequestActualPosition(char const * serialNo)" />
 	/// <seealso cref="PPC_SetPosition(char const * serialNo, short position)" />
+	/// <seealso cref="PPC_SetPositionToTolerance(char const * serialNo, short position, short tolerance)" />
 	/// <seealso cref="PPC_SetPositionControlMode(char const * serialNo, PZ_ControlModeTypes mode)" />
 	/// <seealso cref="PPC_GetPositionControlMode(char const * serialNo)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC_GetPosition(char const * serialNo);
@@ -916,10 +960,26 @@ extern "C"
 	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="PPC_RequestActualPosition(char const * serialNo)" />
+	/// <seealso cref="PPC_SetPositionToTolerance(char const * serialNo, short position, short tolerance)" />
 	/// <seealso cref="PPC_GetPosition(char const * serialNo)" />
 	/// <seealso cref="PPC_SetPositionControlMode(char const * serialNo, PZ_ControlModeTypes mode)" />
 	/// <seealso cref="PPC_GetPositionControlMode(char const * serialNo)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC_SetPosition(char const * serialNo, short position);
+
+	/// <summary> Sets the position when in closed loop mode. </summary>
+	/// <remarks> The command is ignored if not in closed loop mode</remarks>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="position"> The position as a percentage of maximum travel,<br />
+	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
+	/// <param name="tolerance"> The tolerance in position as a percentage of maximum travel,<br />
+	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC_RequestActualPosition(char const * serialNo)" />
+	/// <seealso cref="PPC_SetPosition(char const * serialNo, short position)" />
+	/// <seealso cref="PPC_GetPosition(char const * serialNo)" />
+	/// <seealso cref="PPC_SetPositionControlMode(char const * serialNo, PZ_ControlModeTypes mode)" />
+	/// <seealso cref="PPC_GetPositionControlMode(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC_SetPositionToTolerance(char const * serialNo, short position, short tolerance);
 
 	/// <summary> Gets the PPC IO Settings. </summary>
 	/// <remarks> <I>Applies to Single Channel Precision Piezo Devices only. For multi channel use PPC2_ equivalent.</I></remarks>
@@ -980,6 +1040,40 @@ extern "C"
 	/// <seealso cref="PPC_GetPIDConsts(const char * serialNo, PPC_PIDConsts *pidConsts)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC_SetPIDConsts(const char * serialNo, PPC_PIDConsts *pidConsts);
 
+	/// <summary> Requests the rack digital output bits. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC_SetRackDigitalOutputs(char const * serialNo, byte outputsBits)" />
+	/// <seealso cref="PPC_GetRackDigitalOutputs(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC_RequestRackDigitalOutputs(char const * serialNo);
+
+	/// <summary> Gets the rack digital output bits. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> Bit mask of states of the 4 digital output pins. </returns>
+	/// <seealso cref="PPC_SetRackDigitalOutputs(char const * serialNo, byte outputsBits)" />
+	/// <seealso cref="PPC_RequestRackDigitalOutputs(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API byte __cdecl PPC_GetRackDigitalOutputs(char const * serialNo);
+
+	/// <summary> Sets the rack digital output bits. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="outputsBits"> Bit mask to set states of the 4 digital output pins. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC_GetRackDigitalOutputs(char const * serialNo)" />
+	/// <seealso cref="PPC_RequestRackDigitalOutputs(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC_SetRackDigitalOutputs(char const * serialNo, byte outputsBits);
+
+	/// <summary> Requests the Rack status bits be downloaded. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC_GetRackStatusBits(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC_RequestRackStatusBits(char const * serialNo);
+
+	/// <summary> Gets the Rack status bits. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <returns> The status bits including 4 with one per electronic input pin. </returns>
+	/// <seealso cref="PPC_RequestRackStatusBits(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API DWORD __cdecl PPC_GetRackStatusBits(char const * serialNo);
+
 	/// <summary> Sends a command to the device to make it identify iteself. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="channel">	The device channel. </param>
@@ -1018,6 +1112,20 @@ extern "C"
 	/// <returns> <c>true</c> if successful, false if not. </returns>
 	/// 		  \include CodeSnippet_connection1.cpp
 	BENCHPRECISIONPIEZO_API bool __cdecl PPC2_LoadSettings(char const * serialNo, int channel);
+
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <param name="channel">  The channel. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	BENCHPRECISIONPIEZO_API bool __cdecl PPC2_LoadNamedSettings(char const * serialNo, short channel, char const *settingsName);
+
+	/// <summary>	Persist device settings to device. </summary>
+	/// <param name="serialNo">	The serial no. </param>
+	/// <param name="channel"> 	The channel. </param>
+	/// <returns>	True if it succeeds, false if it fails. </returns>
+	BENCHPRECISIONPIEZO_API bool __cdecl PPC2_PersistSettings(char const * serialNo, int channel);
 
 	/// <summary> Disable the channel so that motor can be moved by hand. </summary>
 	/// <remarks> <I>Applies to Multi Channel Precision Piezo Devices only. For Single channel use PPC_ equivalent.</I></remarks>
@@ -1208,11 +1316,12 @@ extern "C"
 	/// <summary>	Requests the position. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="channel">  The channel. </param>
-	/// <seealso cref="PPC2_RequestPosition(char const * serialNo, short channel)" />
-	/// <seealso cref="PPC2_GetPosition(char const * serialNo, short channel)" />
-	/// <seealso cref="PPC2_SetPosition(char const * serialNo, short channel, short position)" />
+	/// <seealso cref="PPC2_RequestPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_GetPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_SetPosition(char const * serialNo, int channel, short position)" />
+	/// <seealso cref="PPC2_SetPositionToTolerance(char const * serialNo, int channel, short position, short tolerance)" />
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successfully requested. </returns>
-	BENCHPRECISIONPIEZO_API short __cdecl PPC2_RequestActualPosition(char const * serialNo, short channel);
+	BENCHPRECISIONPIEZO_API short __cdecl PPC2_RequestActualPosition(char const * serialNo, int channel);
 
 	/// <summary> Requests the current output voltage or position depending on current mode. </summary>
 	/// <remarks> <I>Applies to Multi Channel Precision Piezo Devices only. For Single channel use PPC_ equivalent.</I></remarks>
@@ -1221,7 +1330,7 @@ extern "C"
 	/// <param name="channel">	The device channel. </param>
 	/// <param name="serialNo"> The device serial no. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successfully requested. </returns>
-	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, short channel)" />
+	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, int channel)" />
 	/// <seealso cref="PPC2_GetPosition(char const * serialNo, int channel)" />
 	/// <seealso cref="PPC2_StartPolling(char const * serialNo, int channel, int milliseconds)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC2_RequestPosition(char const * serialNo, int channel);
@@ -1383,8 +1492,9 @@ extern "C"
 	/// <param name="channel">	The device channel. </param>
 	/// <returns> The position as a percentage of maximum travel,<br />
 	/// 		  range -32767 to 32767, equivalent to -100 to 100%. </returns>
-	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, short channel)" />
+	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, int channel)" />
 	/// <seealso cref="PPC2_SetPosition(char const * serialNo, int channel, short position)" />
+	/// <seealso cref="PPC2_SetPositionToTolerance(char const * serialNo, int channel, short position, short tolerance)" />
 	/// <seealso cref="PPC2_SetPositionControlMode(char const * serialNo, int channel, PZ_ControlModeTypes mode)" />
 	/// <seealso cref="PPC2_GetPositionControlMode(char const * serialNo, int channel)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC2_GetPosition(char const * serialNo, int channel);
@@ -1397,12 +1507,30 @@ extern "C"
 	/// <param name="position"> The position as a percentage of maximum travel,<br />
 	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="PPC2_RequestPosition(char const * serialNo, short channel)" />
-	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, short channel)" />
-	/// <seealso cref="PPC2_GetPosition(char const * serialNo, short channel)" />
+	/// <seealso cref="PPC2_RequestPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_SetPositionToTolerance(char const * serialNo, int channel, short position, short tolerance)" />
+	/// <seealso cref="PPC2_GetPosition(char const * serialNo, int channel)" />
 	/// <seealso cref="PPC2_SetPositionControlMode(char const * serialNo, int channel, PZ_ControlModeTypes mode)" />
 	/// <seealso cref="PPC2_GetPositionControlMode(char const * serialNo, int channel)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC2_SetPosition(char const * serialNo, int channel, short position);
+
+	/// <summary> Sets the position when in closed loop mode. </summary>
+	/// <remarks> The command is ignored if not in closed loop mode</remarks>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="channel">  The channel. </param>
+	/// <param name="position"> The position as a percentage of maximum travel,<br />
+	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
+	/// <param name="tolerance"> The tolerance in position as a percentage of maximum travel,<br />
+	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC2_RequestPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_RequestActualPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_SetPosition(char const * serialNo, int channel, short position)" />
+	/// <seealso cref="PPC2_GetPosition(char const * serialNo, int channel)" />
+	/// <seealso cref="PPC2_SetPositionControlMode(char const * serialNo, int channel, PZ_ControlModeTypes mode)" />
+	/// <seealso cref="PPC2_GetPositionControlMode(char const * serialNo, int channel)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC2_SetPositionToTolerance(char const * serialNo, int channel, short position, short tolerance);
 
 	/// <summary> Gets the PPC IO Settings. </summary>
 	/// <remarks> <I>Applies to Multi Channel Precision Piezo Devices only. For Single channel use PPC_ equivalent.</I></remarks>
@@ -1469,6 +1597,40 @@ extern "C"
 	/// <seealso cref="PPC2_RequestPIDConsts(const char * serialNo, int channel)" />
 	/// <seealso cref="PPC2_GetPIDConsts(const char * serialNo, int channel, PPC_PIDConsts *pidConsts)" />
 	BENCHPRECISIONPIEZO_API short __cdecl PPC2_SetPIDConsts(const char * serialNo, int channel, PPC_PIDConsts *pidConsts);
+
+	/// <summary> Requests the rack digital output bits. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC2_SetRackDigitalOutputs(char const * serialNo, byte outputsBits)" />
+	/// <seealso cref="PPC2_GetRackDigitalOutputs(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC2_RequestRackDigitalOutputs(char const * serialNo);
+
+	/// <summary> Gets the rack digital output bits. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> Bit mask of states of the 4 digital output pins. </returns>
+	/// <seealso cref="PPC2_SetRackDigitalOutputs(char const * serialNo, byte outputsBits)" />
+	/// <seealso cref="PPC2_RequestRackDigitalOutputs(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API byte __cdecl PPC2_GetRackDigitalOutputs(char const * serialNo);
+
+	/// <summary> Sets the rack digital output bits. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="outputsBits"> Bit mask to set states of the 4 digital output pins. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC2_GetRackDigitalOutputs(char const * serialNo)" />
+	/// <seealso cref="PPC2_RequestRackDigitalOutputs(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC2_SetRackDigitalOutputs(char const * serialNo, byte outputsBits);
+
+	/// <summary> Requests the Rack status bits be downloaded. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PPC2_GetRackStatusBits(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API short __cdecl PPC2_RequestRackStatusBits(char const * serialNo);
+
+	/// <summary> Gets the Rack status bits. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <returns> The status bits including 4 with one per electronic input pin. </returns>
+	/// <seealso cref="PPC2_RequestRackStatusBits(char const * serialNo)" />
+	BENCHPRECISIONPIEZO_API DWORD __cdecl PPC2_GetRackStatusBits(char const * serialNo);
 
 }
 /** @} */ // BenchtopPrecisionPiezo

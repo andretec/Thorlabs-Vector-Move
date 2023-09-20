@@ -1,6 +1,7 @@
 ; APT USB Serial Port.inf
-; Copyright (c) 2015 Thorlabs Ltd.
-; Copyright © 2000-2015 Future Technology Devices International Limited
+;
+; Copyright © 2015-2019 Thorlabs Ltd.
+; Copyright © 2000-2017 Future Technology Devices International Limited
 ;
 
 [Version]
@@ -9,22 +10,22 @@ DriverPackageType=PlugAndPlay
 DriverPackageDisplayName=%DESC%
 Class=Ports
 ClassGUID={4d36e978-e325-11ce-bfc1-08002be10318}
-Provider=%FTDI%
+Provider=%Ftdi%
 CatalogFile="APT USB Serial Port.cat"
-DriverVer=12/18/2015,2.12.10.1
+DriverVer=08/16/2017,2.12.28
 
 [SourceDisksNames]
-1=%DriversDisk%,"APT USB Serial Port.cat",,
+1=%DriversDisk%,"APT USB Serial Port.cab",,
 
 [SourceDisksFiles]
 ftser2k.sys=1,i386
 ftserui2.dll=1,i386
-ftcserco.dll = 1,i386
+ftcserco.dll=1,i386
 
 [SourceDisksFiles.amd64]
 ftser2k.sys=1,amd64
 ftserui2.dll=1,amd64
-ftcserco.dll = 1,amd64
+ftcserco.dll=1,amd64
 
 [DestinationDirs]
 FtdiPort.NT.Copy=10,system32\drivers
@@ -122,7 +123,7 @@ HKR,,CoInstallers32,0x00010000,"ftcserco.Dll,FTCSERCoInstaller"
 ;---------------------------------------------------------------;
 
 [Strings]
-FTDI="Thorlabs"
+Ftdi="Thorlabs"
 DESC="APT USB Driver Package"
 DriversDisk="APT USB Drivers"
 PortsClassName = "Ports (COM & LPT)"

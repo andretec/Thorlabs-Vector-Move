@@ -40,7 +40,7 @@
 
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 	
 	/// <summary> The Piezo Control Modes. </summary>
 	/// \ingroup Common
@@ -77,7 +77,7 @@ extern "C"
 		PZ_OutputTrigRepeat = 0x80, ///<Output trigger repeats.
 	} PZ_OutputLUTModes;
 
-	/// \endcond
+/// \endcond
 
 	#pragma pack(1)
 	
@@ -392,6 +392,7 @@ extern "C"
 	/// <returns> The position as a percentage of maximum travel,<br />
 	/// 		  range -32767 to 32767, equivalent to -100 to 100%. </returns>
 	/// <seealso cref="PBC_SetPosition(char const * serialNo, short channel, short position)" />
+	/// <seealso cref="PBC_SetPositionToTolerance(char const * serialNo, short channel, short position, short tolerance)" />
 	/// <seealso cref="PBC_SetPositionControlMode(char const * serialNo, short channel, PZ_ControlModeTypes mode)" />
 	/// <seealso cref="PBC_GetPositionControlMode(char const * serialNo, short channel)" />
 	MODULARRACK_API short __cdecl PBC_GetPosition(char const * serialNo, short channel);
@@ -403,10 +404,26 @@ extern "C"
 	/// <param name="position"> The position as a percentage of maximum travel,<br />
 	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PBC_SetPositionToTolerance(char const * serialNo, short channel, short position, short tolerance)" />
 	/// <seealso cref="PBC_GetPosition(char const * serialNo, short channel)" />
 	/// <seealso cref="PBC_SetPositionControlMode(char const * serialNo, short channel, PZ_ControlModeTypes mode)" />
 	/// <seealso cref="PBC_GetPositionControlMode(char const * serialNo, short channel)" />
 	MODULARRACK_API short __cdecl PBC_SetPosition(char const * serialNo, short channel, short position);
+
+	/// <summary> Sets the position when in closed loop mode. </summary>
+	/// <remarks> The command is ignored if not in closed loop mode</remarks>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="channel">  The channel. </param>
+	/// <param name="position"> The position as a percentage of maximum travel,<br />
+	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
+	/// <param name="tolerance"> The tolerance in position as a percentage of maximum travel,<br />
+	/// 		  range 0 to 32767, equivalent to 0 to 100%. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="PBC_SetPosition(char const * serialNo, short channel, short position)" />
+	/// <seealso cref="PBC_GetPosition(char const * serialNo, short channel)" />
+	/// <seealso cref="PBC_SetPositionControlMode(char const * serialNo, short channel, PZ_ControlModeTypes mode)" />
+	/// <seealso cref="PBC_GetPositionControlMode(char const * serialNo, short channel)" />
+	MODULARRACK_API short __cdecl PBC_SetPositionToTolerance(char const * serialNo, short channel, short position, short tolerance);
 
 	/// <summary> Gets the feedback loop constants. </summary>
 	/// <param name="serialNo"> The controller serial no. </param>

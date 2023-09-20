@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='UTF-8'?>
-<Project Type="Project" LVVersion="14008000">
+<Project Type="Project" LVVersion="21008000">
 	<Item Name="My Computer" Type="My Computer">
 		<Property Name="NI.SortType" Type="Int">3</Property>
 		<Property Name="server.app.propertiesEnabled" Type="Bool">true</Property>
@@ -96,9 +96,7 @@
 			<Item Name="teste-motor-3-3.vi" Type="VI" URL="../teste-motor-3-3.vi"/>
 			<Item Name="teste-circle.vi" Type="VI" URL="../teste-circle.vi"/>
 		</Item>
-		<Item Name="decodex" Type="Folder" URL="../../decodex">
-			<Property Name="NI.DISK" Type="Bool">true</Property>
-		</Item>
+		<Item Name="decodex" Type="Folder"/>
 		<Item Name="getPosXY.vi" Type="VI" URL="../Basic-VIs/getPosXY.vi"/>
 		<Item Name="Kinesis-Teste-Vector-4.vi" Type="VI" URL="../Kinesis-Teste-Vector-4.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
@@ -110,8 +108,6 @@
 				<Item Name="VISA Configure Serial Port (Instr).vi" Type="VI" URL="/&lt;vilib&gt;/Instr/_visa.llb/VISA Configure Serial Port (Instr).vi"/>
 				<Item Name="VISA Configure Serial Port (Serial Instr).vi" Type="VI" URL="/&lt;vilib&gt;/Instr/_visa.llb/VISA Configure Serial Port (Serial Instr).vi"/>
 				<Item Name="Clear Errors.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Clear Errors.vi"/>
-				<Item Name="Waveform Scale and Offset.vi" Type="VI" URL="/&lt;vilib&gt;/Waveform/WDTOps.llb/Waveform Scale and Offset.vi"/>
-				<Item Name="subFile Dialog.vi" Type="VI" URL="/&lt;vilib&gt;/express/express input/FileDialogBlock.llb/subFile Dialog.vi"/>
 			</Item>
 			<Item Name="Thorlabs.MotionControl.Controls.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.Controls.dll"/>
 			<Item Name="Thorlabs.MotionControl.GenericMotorCLI.dll" Type="Document" URL="../Kinesis/Thorlabs.MotionControl.GenericMotorCLI.dll"/>
@@ -127,6 +123,8 @@
 			<Item Name="Motor-Pega-Pos.vi" Type="VI" URL="../Motor+Shutter/Motor Thorlabs 2012/Motor-Pega-Pos.vi"/>
 			<Item Name="openMotor-83823484.vi" Type="VI" URL="../Basic-VIs/openMotor-83823484.vi"/>
 			<Item Name="openMotor-83823114.vi" Type="VI" URL="../Basic-VIs/openMotor-83823114.vi"/>
+			<Item Name="2D-ShapeBuilder.vi" Type="VI" URL="../../decodex/2D-ShapeBuilder.vi"/>
+			<Item Name="calc-velocities.vi" Type="VI" URL="../../decodex/calc-velocities.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>

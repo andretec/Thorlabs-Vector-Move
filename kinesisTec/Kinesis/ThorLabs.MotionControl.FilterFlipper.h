@@ -33,7 +33,7 @@
 
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 
 	/// <summary> Values that represent FT_Status. </summary>
 	typedef enum FT_Status : short
@@ -67,7 +67,7 @@ extern "C"
 		Position2 = 0x02,///<Position 2
 	} FF_Positions;
 
-	/// \endcond
+/// \endcond
 
 	/// <summary> Information about the device generated from serial number. </summary>
 	#pragma pack(1)
@@ -78,7 +78,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -116,21 +116,21 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
-		/// <summary> The device hardware version. </summary>
-		WORD hardwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
 		/// <summary> The device dependant data. </summary>
 		BYTE deviceDependantData[12];
+		/// <summary> The device hardware version. </summary>
+		WORD hardwareVersion;
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
 	/// <summary> FilterFlipper IO operations. </summary>
@@ -350,6 +350,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	FILTERFLIPPERDLL_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	FILTERFLIPPERDLL_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	FILTERFLIPPERDLL_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the device to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -406,6 +419,13 @@ extern "C"
 	/// <returns> <c>true</c> if successful, false if not. </returns>
     /// 		  \include CodeSnippet_connection1.cpp
 	FILTERFLIPPERDLL_API bool __cdecl FF_LoadSettings(char const * serialNo);
+
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	FILTERFLIPPERDLL_API bool __cdecl FF_LoadNamedSettings(char const * serialNo, char const *settingsName);
 
 	/// <summary> Persist the devices current settings. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
@@ -480,6 +500,7 @@ extern "C"
 	FILTERFLIPPERDLL_API short __cdecl FF_SetIOSettings(const char * serialNo, FF_IOSettings *settings);
 
 	/// <summary> Gets the transit time. </summary>
+	/// <param name="serialNo">  The device serial no. </param>
 	/// <returns> The transit time in milliseconds, range 300 to 2800 ms. </returns>
 	/// <seealso cref="FF_SetTransitTime(const char * serialNo, unsigned int transitTime)" />
 	FILTERFLIPPERDLL_API unsigned int __cdecl FF_GetTransitTime(const char * serialNo);

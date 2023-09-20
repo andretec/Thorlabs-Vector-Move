@@ -16,7 +16,7 @@
 #pragma once
 
 /** @defgroup TCubeQuad TCube Quad / TCube Position Aligner
- *  This section details the Structures and Functions relavent to the  @ref TPA001_page "TCube Quad or TCube Position Aligner"<br />
+ *  This section details the Structures and Functions relavent to the  @ref TQD001_page "TCube Quad or TCube Position Aligner"<br />
  *  For an example of how to connect to the device and perform simple operations use the following links:
  *  <list type=bullet>
  *    <item> \ref namespaces_tqd_ex_1 "Example of using the Thorlabs.MotionControl.TCube.Quad.DLL from a C or C++ project."<br />
@@ -32,7 +32,7 @@
  */
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 	
 	/// <summary> Values that represent FT_Status. </summary>
 	typedef enum FT_Status : short
@@ -57,7 +57,7 @@ extern "C"
 		MOT_BrushlessMotor = 3,
 		MOT_CustomMotor = 100,
 	} MOT_MotorTypes;
-	/// \endcond
+/// \endcond
 
 	/// <summary> Values that represent the operating modes. </summary>
 	typedef enum QD_OperatingMode : short
@@ -100,7 +100,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -138,21 +138,21 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
-		/// <summary> The device hardware version. </summary>
-		WORD hardwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
 		/// <summary> The device dependant data. </summary>
 		BYTE deviceDependantData[12];
+		/// <summary> The device hardware version. </summary>
+		WORD hardwareVersion;
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
 	/// <summary> structure containing parameters in the feedback process. </summary>
@@ -163,7 +163,8 @@ extern "C"
 		float proportionalGain;
 		/// <summary> The integral gain term, range 0 to 10000. </summary>
 		float integralGain;
-		/// <summary> The differential gain term, range 0 to 10000. </summary>
+		/// <summary> The derivative gain term, range 0 to 10000. </summary>
+		/// <remarks> Kept as differentialGain rather than derivativeGain for backward compatibility</remarks>
 		float differentialGain;
 		/// <summary> The low pass filter cut off frequency, range 0 to 10000. </summary>
 		/// <remarks>Not used by HW version &lt; 3</remarks>
@@ -197,7 +198,8 @@ extern "C"
 		float proportionalGain;
 		/// <summary> The integral gain term, range 0 to 10000. </summary>
 		float integralGain;
-		/// <summary> The differential gain term, range 0 to 10000. </summary>
+		/// <summary> The derivative gain term, range 0 to 10000. </summary>
+		/// <remarks> Kept as differentialGain rather than derivativeGain for backward compatibility</remarks>
 		float differentialGain;
 	} QD_PIDParameters;
 
@@ -241,13 +243,13 @@ extern "C"
 	typedef struct QD_PositionDemandParameters
 	{
 		/// <summary> Minimum X demand position, range -32768 to 32767 for -10V to +10V. </summary>
-		_int16 minXdemand;
+		__int16 minXdemand;
 		/// <summary> Minimum Y demand position, range -32768 to 32767 for -10V to +10V. </summary>
-		_int16 minYdemand;
+		__int16 minYdemand;
 		/// <summary> Maximum X demand position, range -32768 to 32767 for -10V to +10V. </summary>
-		_int16 maxXdemand;
+		__int16 maxXdemand;
 		/// <summary> Maximum Y demand position, range -32768 to 32767 for -10V to +10V. </summary>
-		_int16 maxYdemand;
+		__int16 maxYdemand;
 		/// <summary> The Low Voltage Output route.
 		/// 		  <list type=table>
 		///				<item><term>Output via SMA only</term><term>1</term></item>
@@ -261,18 +263,18 @@ extern "C"
 		/// 		  </list> </summary>
 		QD_OpenLoopHoldValues openLoopOption;
 		/// <summary> The X direction Signal Gain Factor, range -32767 to +32767 with negative reversing sense of x axis demand signal with gain up to 1.0 . </summary>
-		_int16 xFeedbackSignedGain;
+		__int16 xFeedbackSignedGain;
 		/// <summary> The Y direction Signal Gain Factor, range -32767 to +32767 with negative reversing sense of y axis demand signal with gain up to 1.0 . </summary>
-		_int16 yFeedbackSignedGain;
+		__int16 yFeedbackSignedGain;
 	} QD_PositionDemandParameters;
 
 	/// <summary> 2 Dimensional Position . </summary>
 	typedef struct QD_Position
 	{
 		/// <summary> The horizontal component. </summary>
-		_int16 x;
+		__int16 x;
 		/// <summary> The vertical component. </summary>
-		_int16 y;
+		__int16 y;
 	} QD_Position;
 
 	/// <summary> Structure holding position readings. </summary>
@@ -416,6 +418,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	TCUBEQUAD_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	TCUBEQUAD_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	TCUBEQUAD_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the device to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -480,6 +495,13 @@ extern "C"
     /// 		  \include CodeSnippet_connection1.cpp
 	TCUBEQUAD_API bool __cdecl QD_LoadSettings(char const * serialNo);
 
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	TCUBEQUAD_API bool __cdecl QD_LoadNamedSettings(char const * serialNo, char const *settingsName);
+
 	/// <summary> persist the devices current settings. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <returns> <c>true</c> if successful, false if not. </returns>
@@ -538,11 +560,11 @@ extern "C"
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	TCUBEQUAD_API short __cdecl QD_RequestLoopPIDparams(char const *serialNo);
 
@@ -552,11 +574,11 @@ extern "C"
 	/// <param name="loopParams"> Address of the QD_LoopParameters to recieve the Feedback Loop Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
 	TCUBEQUAD_API short __cdecl QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams);
@@ -567,42 +589,42 @@ extern "C"
 	/// <param name="loopParams"> Address of the QD_LoopParameters containing the new Feedback Loop Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
 	TCUBEQUAD_API short __cdecl QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams);
 
 	/// <summary> Gets the feedback loop parameters. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="proportionalIntegralDifferentialParams"> Address of the QD_PIDParameters to recieve the Feedback Loop Parameters. </param>
+	/// <param name="proportionalIntegralDerivativeParams"> Address of the QD_PIDParameters to recieve the Feedback Loop Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
-	TCUBEQUAD_API short __cdecl QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams);
+	TCUBEQUAD_API short __cdecl QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams);
 
 	/// <summary> Sets the feedback loop parameters. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="proportionalIntegralDifferentialParams"> Address of the QD_PIDParameters containing the new Feedback Loop Parameters. </param>
+	/// <param name="proportionalIntegralDerivativeParams"> Address of the QD_PIDParameters containing the new Feedback Loop Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
-	TCUBEQUAD_API short __cdecl QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams);
+	TCUBEQUAD_API short __cdecl QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams);
 
 	/// <summary> Gets the low pass filter parameters. </summary>
 	/// <remarks> NOTE This feature was added to the TPA101 device, hardware version &gt;= 3</remarks>
@@ -610,12 +632,12 @@ extern "C"
 	/// <param name="lowPassParams"> Address of the QD_LowPassFilterParameters to receive the Low Pass Filter Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
 	TCUBEQUAD_API short __cdecl QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams);
 
@@ -625,12 +647,12 @@ extern "C"
 	/// <param name="lowPassParams"> Address of the QD_LowPassFilterParameters containing the new Feedback Low Pass Filter Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
 	TCUBEQUAD_API short __cdecl QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams);
 
@@ -639,30 +661,30 @@ extern "C"
 	/// <param name="serialNo"> The device serial no. </param>
 	/// <param name="notchParams"> Address of the QD_NotchFilterParameters to receive the Notch Filter Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
 	TCUBEQUAD_API short __cdecl QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams);
 
 	/// <summary> Sets the notch filter parameters. </summary>
 	/// <remarks> NOTE This feature was added to the TPA101 device, hardware version &gt;= 3</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="proportionalIntegralDifferentialParams"> Address of the QD_NotchFilterParameters containing the new Feedback Notch Filter Parameters. </param>
+	/// <param name="proportionalIntegralDerivativeParams"> Address of the QD_NotchFilterParameters containing the new Feedback Notch Filter Parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_GetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *notchParams)" />
 	/// <seealso cref="QD_GetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_SetLowPassFilterparams(char const *serialNo, QD_LowPassFilterParameters *lowPassParams)" />
 	/// <seealso cref="QD_GetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
 	/// <seealso cref="QD_SetLoopPIDparams(char const *serialNo, QD_LoopParameters *loopParams)" />
-	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
-	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDifferentialParams)" />
+	/// <seealso cref="QD_SetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
+	/// <seealso cref="QD_GetPIDparams(char const *serialNo, QD_PIDParameters *proportionalIntegralDerivativeParams)" />
 	/// <seealso cref="QD_RequestLoopPIDparams(char const *serialNo)" />
-	TCUBEQUAD_API short __cdecl QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDifferentialParams);
+	TCUBEQUAD_API short __cdecl QD_SetNotchFilterparams(char const *serialNo, QD_NotchFilterParameters *proportionalIntegralDerivativeParams);
 
 
 	/// <summary> Requests the position demand output parameters. </summary>
@@ -725,13 +747,13 @@ extern "C"
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_GetLEDBrightness(char const * serialNo)" />
 	/// <seealso cref="QD_SetLEDBrightness(char const * serialNo, short brightness)" />
-	TCUBEQUAD_API short __cdecl QD_RequestsLEDBrightness(char const * serialNo);
+	TCUBEQUAD_API short __cdecl QD_RequestLEDBrightness(char const * serialNo);
 
 	/// <summary> Gets the LED brightness. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <returns> Intensity from 0 (off) to 255. </returns>
 	/// <seealso cref="QD_SetLEDBrightness(char const * serialNo, short brightness)" />
-	/// <seealso cref="QD_RequestsLEDBrightness(char const * serialNo)" />
+	/// <seealso cref="QD_RequestLEDBrightness(char const * serialNo)" />
 	TCUBEQUAD_API WORD __cdecl QD_GetLEDBrightness(char const * serialNo);
 
 	/// <summary> Sets the LED brightness. </summary>
@@ -739,7 +761,7 @@ extern "C"
 	/// <param name="brightness"> Intensity from 0 (off) to 255. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="QD_GetLEDBrightness(char const * serialNo)" />
-	/// <seealso cref="QD_RequestsLEDBrightness(char const * serialNo)" />
+	/// <seealso cref="QD_RequestLEDBrightness(char const * serialNo)" />
 	TCUBEQUAD_API short __cdecl QD_SetLEDBrightness(char const * serialNo, short brightness);
 
 	/// <summary> Gets position demand output. </summary>

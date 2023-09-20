@@ -35,7 +35,7 @@
 
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 
 	/// <summary> Values that represent FT_Status. </summary>
 	typedef enum FT_Status : short
@@ -148,9 +148,9 @@ extern "C"
 	/// <summary> Values that represent MOT_LimitsSoftwareApproachPolicy. </summary>
 	typedef enum MOT_LimitsSoftwareApproachPolicy : __int16
 	{
-		DisallowIllegalMoves = 0,///<Disable any move outside travel range
-		AllowPartialMoves,///<Truncate all moves beyond limit to limit.
-		AllowAllMoves,///<Allow all moves, illegal or not
+		DisallowIllegalMoves = 0,///<Disable any move outside of the current travel range of the stage
+		AllowPartialMoves,///<Truncate moves to within the current travel range of the stage.
+		AllowAllMoves,///<Allow all moves, regardless of whether they are within the current travel range of the stage.
 	} MOT_LimitsSoftwareApproachPolicy;
 
 	/// <summary> Values that represent the Encoder PID Loop modes. </summary>
@@ -160,7 +160,50 @@ extern "C"
 		MOT_PIDOpenLoopMode = 0x01,///<Encoder is in open loop mode
 		MOT_PIDClosedLoopMode = 0x02,///<Encoder is in closed loop mode
 	} MOT_PID_LoopMode;
-	/// \endcond
+
+	/// <summary> Values that represent DeviceMessageClass message types. </summary>
+	typedef enum MOT_MovementModes
+	{
+		LinearRange = 0x00,///< Fixed Angular Range defined by MinPosition and MaxPosition
+		RotationalUnlimited = 0x01,///< Unlimited angle
+		RotationalWrapping = 0x02,///< Angular Range 0 to 360 with wrap around
+	} MOT_MovementModes;
+
+	/// <summary> Values that represent DeviceMessageClass message types. </summary>
+	typedef enum MOT_MovementDirections
+	{
+		Quickest = 0x00,///< Uses the shortest travel between two angles
+		Forwards = 0x01,///< Only rotate in a forward direction
+		Reverse = 0x02,///< Only rotate in a backward direction
+	} MOT_MovementDirections;
+
+	/// <summary> Values that represent Trigger Port Mode. </summary>
+	typedef enum KMOT_TriggerPortMode
+	{
+		KMOT_TrigDisabled = 0x00,///< Trigger Disabled
+		KMOT_TrigIn_GPI = 0x01,///< General purpose logic input
+		KMOT_TrigIn_RelativeMove = 0x02,///< Move relative using relative move parameters
+		KMOT_TrigIn_AbsoluteMove = 0x03,///< Move absolute using absolute move parameters
+		KMOT_TrigIn_Home = 0x04,///< Perform a Home action
+		KMOT_TrigIn_Stop = 0x05,///< Perform a Stop Immediate action
+		KMOT_TrigOut_GPO = 0x0A,///< General purpose output (set using MOT_SET_DIGOUTPUTS)
+		KMOT_TrigOut_InMotion = 0x0B,///< Set when device moving
+		KMOT_TrigOut_AtMaxVelocity = 0x0C,///< Set when at max velocity
+		KMOT_TrigOut_AtPositionStepFwd = 0x0D,///< Set when at predefine position steps, Forward,<br />Set using wTrigStartPos, wTrigInterval, wTrigNumPulses,wTrigPulseWidth
+		KMOT_TrigOut_AtPositionStepRev = 0x0E,///< Set when at predefine position steps, Reverse,<br />Set using wTrigStartPos, wTrigInterval, wTrigNumPulses,wTrigPulseWidth
+		KMOT_TrigOut_AtPositionStepBoth = 0x0F,///< Set when at predefine position steps, Both,<br />Set using wTrigStartPos, wTrigInterval, wTrigNumPulses,wTrigPulseWidth
+		KMOT_TrigOut_AtFwdLimit = 0x10,///< Set when forward limit switch is active
+		KMOT_TrigOut_AtBwdLimit = 0x11,///< Set when backward limit switch is active
+		KMOT_TrigOut_AtLimit = 0x12,///< Set when either limit switch is active
+	} KMOT_TriggerPortMode;
+
+	/// <summary> Values that represent Trigger Port Polarity. </summary>
+	typedef enum KMOT_TriggerPortPolarity
+	{
+		KMOT_TrigPolarityHigh = 0x01,///< Trigger Polarity high
+		KMOT_TrigPolarityLow = 0x02,///< Trigger Polarity Low
+	} KMOT_TriggerPortPolarity;
+/// \endcond
 
 	/// <summary> Information about the device generated from serial number. </summary>
 	#pragma pack(1)
@@ -171,7 +214,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -208,21 +251,21 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
-		/// <summary> The device hardware version. </summary>
-		WORD hardwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
 		/// <summary> The device dependant data. </summary>
 		BYTE deviceDependantData[12];
+		/// <summary> The device hardware version. </summary>
+		WORD hardwareVersion;
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
 	/// <summary> Structure containing the velocity parameters. </summary>
@@ -380,7 +423,8 @@ extern "C"
 		int proportionalGain;
 		/// <summary> The PID Integral Gain. </summary>
 		int integralGain;
-		/// <summary> The PID Differential Gain. </summary>
+		/// <summary> The PID Derivative Gain. </summary>
+		/// <remarks> Kept as differentialGain rather than derivativeGain for backward compatibility</remarks>
 		int differentialGain;
 		/// <summary> The PID Integral Limit. </summary>
 		int integralLimit;
@@ -389,11 +433,103 @@ extern "C"
 		/// 		 <list type=table>
 		///				<item><term>Bit 1 (0x01)</term><term>When set, enable Proportional Gain component.</term></item>
 		///				<item><term>Bit 2 (0x02)</term><term>When set, enable Integral Gain component.</term></item>
-		///				<item><term>Bit 3 (0x04)</term><term>When set, enable Differential Gain component.</term></item>
+		///				<item><term>Bit 3 (0x04)</term><term>When set, enable Derivative Gain component.</term></item>
 		///				<item><term>Bit 4 (0x08)</term><term>When set, enable Integral Limit component.</term></item>
 		/// 		  </list> </remarks>
 		WORD parameterFilter;
 	} MOT_DC_PIDParameters;
+
+	/// <summary> Motor trigger configuration. </summary>
+	typedef struct KMOT_TriggerConfig
+	{
+		/// <summary> The trigger 1 mode. </summary>
+		/// <remarks> The trigger 1 operating mode:
+		/// 		  <list type=table>
+		///				<item><term>0</term><term>Trigger disabled</term></item>
+		///				<item><term>1</term><term>Trigger Input - General purpose logic input</term></item>
+		///				<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
+		///				<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
+		///				<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+		///				<item><term>5</term><term>Trigger Input - Perform a Stop Immediate action.<Br />Currently only supported on KST101</term></item>
+		///				<item><term>10</term><term>Trigger Output - General purpose output (set using MOT_SET_DIGOUTPUTS)</term></item>
+		///				<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
+		///				<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
+		///				<item><term>13</term><term>Trigger Output - Set when at predefine position steps</term></item>
+		///				<item><term>14</term><term>Trigger Output - TBD mode</term></item>
+		/// 		  </list>
+		/// 		  </remarks>
+		KMOT_TriggerPortMode Trigger1Mode;
+		/// <summary> The trigger 1 polarity. </summary>
+		/// <remarks> The trigger 1 output polaritye:
+		/// 		  <list type=table>
+		///				<item><term>1</term><term>Output high when set</term></item>
+		///				<item><term>2</term><term>Output low when set</term></item>
+		/// 		  </list>
+		/// 		  </remarks>
+		KMOT_TriggerPortPolarity Trigger1Polarity;
+		/// <summary> The trigger 2 mode. </summary>
+		/// <remarks> The trigger 2 operating mode:
+		/// 		  <list type=table>
+		///				<item><term>0</term><term>Trigger disabled</term></item>
+		///				<item><term>1</term><term>Trigger Input - General purpose logic input</term></item>
+		///				<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
+		///				<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
+		///				<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+		///				<item><term>5</term><term>Trigger Input - Perform a Stop Immediate action.<Br />Currently only supported on KST101</term></item>
+		///				<item><term>10</term><term>Trigger Output - General purpose output (set using MOT_SET_DIGOUTPUTS)</term></item>
+		///				<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
+		///				<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
+		///				<item><term>13</term><term>Trigger Output - Set when at predefine position steps</term></item>
+		///				<item><term>14</term><term>Trigger Output - TBD mode</term></item>
+		/// 		  </list>
+		/// 		  </remarks>
+		KMOT_TriggerPortMode Trigger2Mode;
+		/// <summary> The trigger 2 polarity. </summary>
+		/// <remarks> The trigger 2 output polarity:
+		/// 		  <list type=table>
+		///				<item><term>1</term><term>Output high when set</term></item>
+		///				<item><term>2</term><term>Output low when set</term></item>
+		/// 		  </list>
+		/// 		  </remarks>
+		KMOT_TriggerPortPolarity Trigger2Polarity;
+	} KMOT_TriggerConfig;
+
+	/// <summary> structure containing the   encoder resolution parameters. </summary>
+	/// <value> The encoder parameters. </value>
+	typedef struct MOT_EncoderResolutionParams
+	{
+		/// <summary> Endcoder resolution whole number part. </summary>
+		DWORD encoderResolutionWholeNumber;
+		/// <summary> Endcoder resolution fractional part. </summary>
+		WORD encoderResolutionFraction;
+		/// <summary> Reserved for future use. </summary>
+		WORD unused1;
+		/// <summary> Reserved for future use. </summary>
+		WORD unused2;
+		/// <summary> Reserved for future use. </summary>
+		WORD unused3;
+	} MOT_EncoderResolutionParams;
+
+	/// <summary> Motor trigger output configuration. </summary>
+	typedef struct KMOT_TriggerParams
+	{
+		/// <summary> The trigger output start position in encoder units. </summary>
+		__int32 TriggerStartPositionFwd;
+		/// <summary> The trigger interval in encoder units. </summary>
+		__int32 TriggerIntervalFwd;
+		/// <summary> Number of trigger pulses. </summary>
+		__int32 TriggerPulseCountFwd;
+		/// <summary> The trigger output start position in encoder units. </summary>
+		__int32 TriggerStartPositionRev;
+		/// <summary> The trigger interval in encoder units. </summary>
+		__int32 TriggerIntervalRev;
+		/// <summary> Number of trigger pulses. </summary>
+		__int32 TriggerPulseCountRev;
+		/// <summary> Width of the trigger pulse in encoder units. </summary>
+		__int32 TriggerPulseWidth;
+		/// <summary> Number of cycles. </summary>
+		__int32 CycleCount;
+	} KMOT_TriggerParams;
 #pragma pack()
 
     /// <summary> Build the DeviceList. </summary>
@@ -525,6 +661,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	BENCHTOPDCSERVO_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	BENCHTOPDCSERVO_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	BENCHTOPDCSERVO_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the controller to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -613,6 +762,20 @@ extern "C"
 	/// <returns> <c>true</c> if successful, false if not. </returns>
     /// 		  \include CodeSnippet_connectionN.cpp
 	BENCHTOPDCSERVO_API bool __cdecl BDC_LoadSettings(char const * serialNo, short channel);
+
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <param name="channel">  The channel. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	BENCHTOPDCSERVO_API bool __cdecl BDC_LoadNamedSettings(char const * serialNo, short channel, char const *settingsName);
+
+	/// <summary>	Persist device settings to device. </summary>
+	/// <param name="serialNo">	The serial no. </param>
+	/// <param name="channel"> 	The channel. </param>
+	/// <returns>	True if it succeeds, false if it fails. </returns>
+	BENCHTOPDCSERVO_API bool __cdecl BDC_PersistSettings(char const * serialNo, short channel);
 
 	/// <summary> Set the calibration file for this motor. </summary>
 	/// <param name="serialNo"> The controller serial no. </param>
@@ -706,8 +869,9 @@ extern "C"
 	/// <returns> <c>true</c> if the device can home. </returns>
 	BENCHTOPDCSERVO_API bool __cdecl BDC_CanHome(char const * serialNo, short channel);
 
+	/// \deprecated
 	/// <summary> Does the device need to be Homed before a move can be performed. </summary>
-	/// <remarks> @deprecated superceded by <see cref="BDC_CanMoveWithoutHomingFirst(char const * serialNo, short channel)"/> </remarks>
+	/// <remarks> superceded by <see cref="BDC_CanMoveWithoutHomingFirst(char const * serialNo, short channel)"/> </remarks>
 	/// <param name="serialNo"> The controller serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
 	/// <returns> <c>true</c> if the device needs homing. </returns>
@@ -1046,6 +1210,7 @@ extern "C"
 	/// <param name="serialNo">	The controller serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
 	/// <param name="reverse"> if  <c>true</c> then directions will be swapped on these moves. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	BENCHTOPDCSERVO_API short __cdecl BDC_SetDirection(char const * serialNo, short channel, bool reverse);
 
 	/// <summary> Stop the current move immediately (with risk of losing track of position). </summary>
@@ -1209,10 +1374,9 @@ extern "C"
 	/// <param name="serialNo">	The controller serial no. </param>
 	/// <param name="channel"> The channel (1 to n). </param>
 	/// <returns>	The software limits mode <list type=table>
-	///							<item><term> Disable any move outside travel range. </term><term>0</term></item>
-	///							<item><term> Disable any move outside travel range, but allow moves 'just beyond limit' to be truncated to limit. </term><term>1</term></item>
-	///							<item><term> Truncate all moves beyond limit to the current limit. </term><term>2</term></item>
-	///							<item><term> Allow all moves, illegal or not. </term><term>3</term></item>
+	///							<item><term> Disable any move outside of the current travel range of the stage. </term><term>0</term></item>
+	///							<item><term> Truncate moves to within the current travel range of the stage. </term><term>1</term></item>
+	///							<item><term> Allow all moves, regardless of whether they are within the current travel range of the stage. </term><term>2</term></item>
 	/// 		  </list>. </returns>
 	/// <returns> The software limits mode. </returns>
 	/// <seealso cref="BDC_SetLimitsSoftwareApproachPolicy(const char * serialNo, MOT_LimitsSoftwareApproachPolicy limitsSoftwareApproachPolicy)" />
@@ -1223,11 +1387,10 @@ extern "C"
 	/// <param name="channel"> The channel (1 to n). </param>
 	/// <param name="limitsSoftwareApproachPolicy"> The soft limit mode
 	/// 					 <list type=table>
-	///							<item><term> Disable any move outside travel range. </term><term>0</term></item>
-	///							<item><term> Disable any move outside travel range, but allow moves 'just beyond limit' to be truncated to limit. </term><term>1</term></item>
-	///							<item><term> Truncate all moves beyond limit to the current limit. </term><term>2</term></item>
-	///							<item><term> Allow all moves, illegal or not. </term><term>3</term></item>
-	/// 					 </list> <remarks> If these are bitwise-ORed with 0x0080 then the limits are swapped. </remarks> </param>
+	///							<item><term> Disable any move outside of the current travel range of the stage. </term><term>0</term></item>
+	///							<item><term> Truncate moves to within the current travel range of the stage. </term><term>1</term></item>
+	///							<item><term> Allow all moves, regardless of whether they are within the current travel range of the stage. </term><term>2</term></item>
+	/// 					 </list> </param>
 	/// <seealso cref="BDC_GetSoftLimitMode(const char * serialNo)" />
 	BENCHTOPDCSERVO_API void __cdecl BDC_SetLimitsSoftwareApproachPolicy(char const * serialNo, short channel, MOT_LimitsSoftwareApproachPolicy limitsSoftwareApproachPolicy);
 
@@ -1509,6 +1672,18 @@ extern "C"
 	/// <seealso cref="BDC_RequestRackDigitalOutputs(char const * serialNo)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_SetRackDigitalOutputs(char const * serialNo, byte outputsBits);
 
+	/// <summary> Requests the Rack status bits be downloaded. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetRackStatusBits(char const * serialNo)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_RequestRackStatusBits(char const * serialNo);
+
+	/// <summary> Gets the Rack status bits. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <returns> The status bits including 4 with one per electronic input pin. </returns>
+	/// <seealso cref="BDC_RequestRackStatusBits(char const * serialNo)" />
+	BENCHTOPDCSERVO_API DWORD __cdecl BDC_GetRackStatusBits(char const * serialNo);
+
 	/// <summary> Requests the analogue input voltage reading. </summary>
 	/// <param name="serialNo">	The controller serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
@@ -1527,42 +1702,25 @@ extern "C"
 	/// <param name="serialNo"> The serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="BDC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams, short channel)" />
-	/// <seealso cref="BDC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams, short channel)" />
+	/// <seealso cref="BDC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams, short channel)" />
+	/// <seealso cref="BDC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams, short channel)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_RequestDCPIDParams(const char * serialNo, short channel);
 
 	/// <summary> Gets the DC PID parameters. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
-	/// <param name="DCproportionalIntegralDifferentialParams"> Address of the MOT_DC_PIDParameters parameter to recieve the DC PID parameters. </param>
+	/// <param name="DCproportionalIntegralDerivativeParams"> Address of the MOT_DC_PIDParameters parameter to recieve the DC PID parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="BDC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams, short channel)" />
-	BENCHTOPDCSERVO_API short __cdecl BDC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams, short channel);
+	/// <seealso cref="BDC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams, short channel);
 
 	/// <summary> Sets the DC PID parameters. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
-	/// <param name="DCproportionalIntegralDifferentialParams"> Address of the MOT_DC_PIDParameters parameter containing the new  DC PID parameters. </param>
+	/// <param name="DCproportionalIntegralDerivativeParams"> Address of the MOT_DC_PIDParameters parameter containing the new  DC PID parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="BDC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams, short channel)" />
-	BENCHTOPDCSERVO_API short __cdecl BDC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams, short channel);
-
-	///// <summary> Gets the joystick parameters. </summary>
-	///// <param name="serialNo"> The controller serial no. </param>
-	///// <param name="channel">  The channel (1 to n). </param>
-	///// <param name="joystickParams"> The address of the MOT_JoystickParameters parameter to receive the joystick parammeters. </param>
-	///// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	///// <seealso cref="BDC_SetJoystickParams(char const * serialNo, short channel, MOT_JoystickParameters *joystickParams)" />
-	//BENCHTOPDCSERVO_API short __cdecl BDC_GetJoystickParams(char const * serialNo, short channel, MOT_JoystickParameters *joystickParams);
-
-	///// <summary> Sets the joystick parameters. </summary>
-	///// <param name="serialNo"> The controller serial no. </param>
-	///// <param name="channel">  The channel (1 to n). </param>
-	///// <param name="joystickParams"> The address of the MOT_JoystickParameters containing the new joystick options. </param>
-	///// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	///// <seealso cref="BDC_GetJoystickParams(char const * serialNo, short channel, MOT_JoystickParameters *joystickParams)" />
-	//BENCHTOPDCSERVO_API short __cdecl BDC_SetJoystickParams(char const * serialNo, short channel, MOT_JoystickParameters *joystickParams);
-
+	/// <seealso cref="BDC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams, short channel);
 
 	/// <summary> Suspend automatic messages at ends of moves. </summary>
 	/// <remarks> Useful to speed up part of real-time system with lots of short moves. </remarks>
@@ -1725,6 +1883,12 @@ extern "C"
 	BENCHTOPDCSERVO_API int __cdecl BDC_GetStageAxisMaxPos(char const * serialNo, short channel);
 
 	/// <summary> Sets the stage axis position limits. </summary>
+	/// <remarks> This function sets the limits of travel for the stage.<Br />
+	/// 		  The implementation will depend upon the nature of the travel being requested and the Soft Limits mode which can be obtained using <see cref="BDC_GetSoftLimitMode(char const * serialNo)" />. <Br />
+	/// 		  <B>MoveAbsolute</B>, <B>MoveRelative</B> and <B>Jog (Single Step)</B> will obey the Soft Limit Mode.
+	/// 		  If the target position is outside the limits then either a full move, a partial move or no move will occur.<Br />
+	/// 		  <B>Jog (Continuous)</B> and <B>Move Continuous</B> will attempt to obey the limits, but as these moves rely on position information feedback from the device to detect if the travel is exceeding the limits, the device will stop, but it is likely to overshoot the limit, especially at high velocity.<Br />
+	/// 		  <B>Home</B> will always ignore the software limits.</remarks>
 	/// <param name="serialNo">	The controller serial no. </param>
 	/// <param name="channel">  The channel (1 to n). </param>
 	/// <param name="minPosition"> The minimum position in \ref DeviceUnits_page. </param>
@@ -1757,8 +1921,9 @@ extern "C"
 	/// <seealso cref="BDC_SetMotorTravelMode(char const * serialNo, short channel, int travelMode)" />
 	BENCHTOPDCSERVO_API MOT_TravelModes __cdecl BDC_GetMotorTravelMode(char const * serialNo, short channel);
 
+	/// \deprecated
 	/// <summary> Sets the motor stage parameters. </summary>
-	/// <remarks> @deprecated superceded by <see cref="BDC_SetMotorParamsExt(char const * serialNo, short channel, double stepsPerRevolution, double gearboxRatio, double pitch)"/> </remarks>
+	/// <remarks> superceded by <see cref="BDC_SetMotorParamsExt(char const * serialNo, short channel, double stepsPerRevolution, double gearboxRatio, double pitch)"/> </remarks>
 	/// <remarks> These parameters, when combined define the stage motion in terms of \ref RealWorldUnits_page. (mm or degrees)<br />
 	/// 		  The real world unit is defined from stepsPerRev * gearBoxRatio / pitch.</remarks>
 	/// <param name="serialNo"> The controller serial no. </param>
@@ -1770,8 +1935,9 @@ extern "C"
 	/// <seealso cref="BDC_GetMotorParams(char const * serialNo, short channel, long *stepsPerRev, long *gearBoxRatio, float *pitch)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_SetMotorParams(char const * serialNo, short channel, long stepsPerRev, long gearBoxRatio, float pitch);
 
+	/// \deprecated
 	/// <summary> Sets the motor stage parameters. </summary>
-	/// <remarks> @deprecated superceded by <see cref="BDC_GetMotorParamsExt(char const * serialNo, short channel, double *stepsPerRevolution, double *gearboxRatio, double *pitch)"/> </remarks>
+	/// <remarks> superceded by <see cref="BDC_GetMotorParamsExt(char const * serialNo, short channel, double *stepsPerRevolution, double *gearboxRatio, double *pitch)"/> </remarks>
 	/// <remarks> These parameters, when combined define the stage motion in terms of \ref RealWorldUnits_page. (mm or degrees)<br />
 	/// 		  The real world unit is defined from stepsPerRev * gearBoxRatio / pitch.</remarks>
 	/// <param name="serialNo"> The controller serial no. </param>
@@ -1807,45 +1973,82 @@ extern "C"
 	/// <seealso cref="BDC_GetMotorParamsExt(char const * serialNo, short channel, long *stepsPerRev, long *gearBoxRatio, float *pitch)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_GetMotorParamsExt(char const * serialNo, short channel, double *stepsPerRev, double *gearBoxRatio, double *pitch);
 
-	/// <summary> Sets the motor stage maximum velocity and acceleration. </summary>
+	/// \deprecated
+	/// <summary> Sets the absolute maximum velocity and acceleration constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current stage parameters.<Br />
+    ///           The absolute maximum velocity and acceleration constants are initialized from the stage settings..</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="channel">		 The channel (1 to n). </param>
-	/// <param name="maxVelocity">  The maximum velocity in real world units. </param>
-	/// <param name="maxAcceleration"> The maximum acceleration in real world units. </param>
+	/// <param name="channel">  The channel (1 to n). </param>
+	/// <param name="maxVelocity">  The absolute maximum velocity in real world units. </param>
+	/// <param name="maxAcceleration"> The absolute maximum acceleration in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="BDC_GetMotorTravelLimits(char const * serialNo, short channel, double *minPosition, double *maxPosition)" />
+	/// <seealso cref="BDC_GetMotorVelocityLimits(char const * serialNo, short channel, double *maxVelocity, double *maxAcceleration)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_SetMotorVelocityLimits(char const * serialNo, short channel, double maxVelocity, double maxAcceleration);
 
-	/// <summary> Gets the motor stage maximum velocity and acceleration. </summary>
+	/// <summary> Gets the absolute maximum velocity and acceleration constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current stage parameters.<Br />
+    ///           The absolute maximum velocity and acceleration constants are initialized from the stage settings..</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="channel">		 The channel (1 to n). </param>
-	/// <param name="maxVelocity">  Address of the parameter to receive the maximum velocity in real world units. </param>
-	/// <param name="maxAcceleration"> Address of the parameter to receive the maximum acceleration in real world units. </param>
+	/// <param name="channel">  The channel (1 to n). </param>
+	/// <param name="maxVelocity">  Address of the parameter to receive the absolute maximum velocity in real world units. </param>
+	/// <param name="maxAcceleration"> Address of the parameter to receive the absolute maximum acceleration in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="BDC_SetMotorTravelLimits(char const * serialNo, short channel, double minPosition, double maxPosition)" />
+	/// <seealso cref="BDC_SetMotorVelocityLimits(char const * serialNo, short channel, double maxVelocity, double maxAcceleration)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_GetMotorVelocityLimits(char const * serialNo, short channel, double *maxVelocity, double *maxAcceleration);
 
-	/// <summary> Sets the motor stage min and max position. </summary>
-	/// <remarks> These define the range of travel for the stage.</remarks>
+	/// <summary>	Reset the rotation modes for a rotational device. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="channel">		 The channel (1 to n). </param>
-	/// <param name="minPosition">  The minimum position in real world units. </param>
-	/// <param name="maxPosition"> The maximum position in real world units. </param>
+	/// <param name="channel">		 The channel. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_SetRotationModes(char const * serialNo, MOT_MovementModes mode, MOT_MovementDirections direction)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_ResetRotationModes(char const * serialNo, short channel);
+
+	/// <summary>	Set the rotation modes for a rotational device. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">		 The channel. </param>
+	/// <param name="mode">	The rotation mode.<list type=table>
+	///								<item><term>Linear Range (Fixed Limit, cannot rotate)</term><term>0</term></item>
+	///								<item><term>RotationalUnlimited (Ranges between +/- Infinity)</term><term>1</term></item>
+	///								<item><term>Rotational Wrapping (Ranges between 0 to 360 with wrapping)</term><term>2</term></item>
+	/// 						  </list> </param>
+	/// <param name="direction"> The rotation direction when moving between two angles.<list type=table>
+	///								<item><term>Quickets (Always takes the shortedt path)</term><term>0</term></item>
+	///								<item><term>Forwards (Always moves forwards)</term><term>1</term></item>
+	///								<item><term>Backwards (Always moves backwards)</term><term>2</term></item>
+	/// 						  </list> </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_ResetRotationModes(char const * serialNo)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_SetRotationModes(char const * serialNo, short channel, MOT_MovementModes mode, MOT_MovementDirections direction);
+
+	/// \deprecated
+	/// <summary> Sets the absolute minimum and maximum travel range constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current travel range of the stage.<Br />
+    ///           The absolute minimum and maximum travel range constants are initialized from the stage settings. These values can be adjusted to relative positions based upon the Home Offset.<Br />
+    ///           <Br />
+    ///           To set the working travel range of the stage use the function <see cref="BDC_SetStageAxisLimits(char const * serialNo, short channel, int minPosition, int maxPosition)" /><Br />
+    ///           Use the following to convert between real worl and device units.<Br />
+    ///           <see cref="BDC_GetRealValueFromDeviceUnit(char const * serialNo, short channel, int device_unit, double *real_unit, int unitType)" /><Br />
+    ///           <see cref="BDC_GetDeviceUnitFromRealValue(char const * serialNo, short channel, double real_unit, int *device_unit, int unitType)" /> </remarks>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">		 The channel. </param>
+	/// <param name="minPosition">  The absolute minimum position in real world units. </param>
+	/// <param name="maxPosition"> The absolute maximum position in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="BDC_GetMotorTravelLimits(char const * serialNo, short channel, double *minPosition, double *maxPosition)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_SetMotorTravelLimits(char const * serialNo, short channel, double minPosition, double maxPosition);
 
-	/// <summary> Gets the motor stage min and max position. </summary>
-	/// <remarks> These define the range of travel for the stage.</remarks>
+	/// <summary> Gets the absolute minimum and maximum travel range constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current travel range of the stage.<Br />
+    ///           The absolute minimum and maximum travel range constants are initialized from the stage settings. These values can be adjusted to relative positions based upon the Home Offset.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="channel">		 The channel (1 to n). </param>
-	/// <param name="minPosition">  Address of the parameter to receive the minimum position in real world units. </param>
-	/// <param name="maxPosition"> Address of the parameter to receive the maximum position in real world units. </param>
+	/// <param name="channel">		 The channel. </param>
+	/// <param name="minPosition">  Address of the parameter to receive the absolute minimum position in real world units. </param>
+	/// <param name="maxPosition"> Address of the parameter to receive the absolute maximum position in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="BDC_SetMotorTravelLimits(char const * serialNo, short channel, double minPosition, double maxPosition)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_GetMotorTravelLimits(char const * serialNo, short channel, double *minPosition, double *maxPosition);
 
-	/// <summary>	Converts a devic unit to a real worl unit. </summary>
+	/// <summary>	Converts a device unit to a real world unit. </summary>
 	/// <param name="serialNo">   	The serial no. </param>
 	/// <param name="device_unit">	The device unit. </param>
 	/// <param name="channel">		 The channel (1 to n). </param>
@@ -1859,7 +2062,7 @@ extern "C"
 	/// <seealso cref="BDC_GetDeviceUnitFromRealValue(char const * serialNo, short channel, double real_unit, int *device_unit, int unitType)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_GetRealValueFromDeviceUnit(char const * serialNo, short channel, int device_unit, double *real_unit, int unitType);
 
-	/// <summary>	Converts a devic unit to a real worl unit. </summary>
+	/// <summary>	Converts a device unit to a real world unit. </summary>
 	/// <param name="serialNo">   	The serial no. </param>
 	/// <param name="channel">		 The channel (1 to n). </param>
 	/// <param name="device_unit">	The device unit. </param>
@@ -1872,5 +2075,211 @@ extern "C"
 	/// <returns>	Success. </returns>
 	/// <seealso cref="BDC_GetRealValueFromDeviceUnit(char const * serialNo, short channel, int device_unit, double *real_unit, int unitType)" />
 	BENCHTOPDCSERVO_API short __cdecl BDC_GetDeviceUnitFromRealValue(char const * serialNo, short channel, double real_unit, int *device_unit, int unitType);
+	
+	/// <summary> Requests the encoder resolution parameters. </summary>
+	/// <remarks> For devices that have an encoder, the current encoder resolution can be read. </remarks>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <param name="channel"> The channel. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetEncoderResolutionParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_RequestEncoderResolutionParams(char const * serialNo, short channel);
+
+	/// <summary> Get the encoder resolution parameters. </summary>
+	/// <remarks> For devices that have an encoder, the current encoder resolution can be read. </remarks>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="channel">  The channel. </param>
+	/// <param name="resolutionParams"> Options for controlling the resolution parameters. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_RequestEncoderResolutionParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_GetEncoderResolutionParams(char const * serialNo, short channel, MOT_EncoderResolutionParams * resolutionParams);
+
+	/// <summary>Requests the trigger parameters. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode *trigger1Mode, KMOT_TriggerPortPolarity *trigger1Polarity, KMOT_TriggerPortMode *trigger2Mode, KMOT_TriggerPortPolarity *trigger2Polarity)" />
+	/// <seealso cref="BDC_GetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_SetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode trigger1Mode, KMOT_TriggerPortPolarity trigger1Polarity, KMOT_TriggerPortMode trigger2Mode, KMOT_TriggerPortPolarity trigger2Polarity)" />
+	/// <seealso cref="BDC_SetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_RequestTriggerConfigParams(char const * serialNo, short channel);
+
+	/// <summary> Gets the trigger configuration parameters. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="trigger1Mode">	    The trigger 1 mode.<list type=table>
+	///						<item><term>0</term><term>Trigger disabled</term></item>
+	///						<item><term>1</term><term>Trigger Input - General purpose logic input (<see cref="BMC_GetStatusBits(const char * serialNo)"> GetStatusBits</see>)</term></item>
+	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
+	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
+	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop Immediate action</term></item>
+	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="BMC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
+	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
+	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
+	///						<item><term>13</term><term>Trigger Output - Set when at predefine position steps</term></item>
+	///						<item><term>14</term><term>Trigger Output - TBD mode</term></item>
+	///		 		  </list></param>
+	/// <param name="trigger1Polarity"> The trigger 1 polarity.<list type=table>
+	///						<item><term>1</term><term>Output high when set</term></item>
+	///						<item><term>2</term><term>Output low when set</term></item>
+	///		 		  </list> </param>
+	/// <param name="trigger2Mode">	    The trigger 2 mode.<list type=table>
+	///						<item><term>0</term><term>Trigger disabled</term></item>
+	///						<item><term>1</term><term>Trigger Input - General purpose logic input (<see cref="BMC_GetStatusBits(const char * serialNo)"> GetStatusBits</see>)</term></item>
+	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
+	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
+	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop Immediate action</term></item>
+	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="BMC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
+	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
+	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
+	///						<item><term>13</term><term>Trigger Output - Set when at predefine position steps</term></item>
+	///						<item><term>14</term><term>Trigger Output - TBD mode</term></item>
+	///		 		  </list></param>
+	/// <param name="trigger2Polarity"> The trigger 2 polarity.<list type=table>
+	///						<item><term>1</term><term>Output high when set</term></item>
+	///						<item><term>2</term><term>Output low when set</term></item>
+	///		 		  </list> </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_SetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode trigger1Mode, KMOT_TriggerPortPolarity trigger1Polarity, KMOT_TriggerPortMode trigger2Mode, KMOT_TriggerPortPolarity trigger2Polarity)" />
+	/// <seealso cref="BDC_SetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_RequestTriggerConfigParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_GetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode *trigger1Mode, KMOT_TriggerPortPolarity *trigger1Polarity, KMOT_TriggerPortMode *trigger2Mode, KMOT_TriggerPortPolarity *trigger2Polarity);
+
+	/// <summary> Gets the trigger configuration parameters block. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="triggerConfigParams"> Options for controlling the trigger configuration. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode *trigger1Mode, KMOT_TriggerPortPolarity *trigger1Polarity, KMOT_TriggerPortMode *trigger2Mode, KMOT_TriggerPortPolarity *trigger2Polarity)" />
+	/// <seealso cref="BDC_SetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode trigger1Mode, KMOT_TriggerPortPolarity trigger1Polarity, KMOT_TriggerPortMode trigger2Mode, KMOT_TriggerPortPolarity trigger2Polarity)" />
+	/// <seealso cref="BDC_SetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_RequestTriggerConfigParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_GetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams);
+
+	/// <summary> Sets the trigger configuration parameters. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="trigger1Mode">	    The trigger 1 mode.<list type=table>
+	///						<item><term>0</term><term>Trigger disabled</term></item>
+	///						<item><term>1</term><term>Trigger Input - General purpose logic input (<see cref="BMC_GetStatusBits(const char * serialNo)"> GetStatusBits</see>)</term></item>
+	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
+	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
+	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop Immediate action</term></item>
+	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="BMC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
+	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
+	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
+	///						<item><term>13</term><term>Trigger Output - Set when at predefine position steps</term></item>
+	///						<item><term>14</term><term>Trigger Output - TBD mode</term></item>
+	///		 		  </list></param>
+	/// <param name="trigger1Polarity"> The trigger 1 polarity.<list type=table>
+	///						<item><term>1</term><term>Output high when set</term></item>
+	///						<item><term>2</term><term>Output low when set</term></item>
+	///		 		  </list> </param>
+	/// <param name="trigger2Mode">	    The trigger 2 mode.<list type=table>
+	///						<item><term>0</term><term>Trigger disabled</term></item>
+	///						<item><term>1</term><term>Trigger Input - General purpose logic input (<see cref="BMC_GetStatusBits(const char * serialNo)"> GetStatusBits</see>)</term></item>
+	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
+	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
+	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop Immediate action</term></item>
+	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="BMC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
+	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
+	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
+	///						<item><term>13</term><term>Trigger Output - Set when at predefine position steps</term></item>
+	///						<item><term>14</term><term>Trigger Output - TBD mode</term></item>
+	///		 		  </list></param>
+	/// <param name="trigger2Polarity"> The trigger 2 polarity.<list type=table>
+	///						<item><term>1</term><term>Output high when set</term></item>
+	///						<item><term>2</term><term>Output low when set</term></item>
+	///		 		  </list> </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode *trigger1Mode, KMOT_TriggerPortPolarity *trigger1Polarity, KMOT_TriggerPortMode *trigger2Mode, KMOT_TriggerPortPolarity *trigger2Polarity)" />
+	/// <seealso cref="BDC_GetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_SetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_RequestTriggerConfigParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_SetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode trigger1Mode, KMOT_TriggerPortPolarity trigger1Polarity, KMOT_TriggerPortMode trigger2Mode, KMOT_TriggerPortPolarity trigger2Polarity);
+
+	/// <summary> Sets the trigger configuration parameters block. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="triggerConfigParams"> Options for controlling the trigger configuration. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode *trigger1Mode, KMOT_TriggerPortPolarity *trigger1Polarity, KMOT_TriggerPortMode *trigger2Mode, KMOT_TriggerPortPolarity *trigger2Polarity)" />
+	/// <seealso cref="BDC_GetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams)" />
+	/// <seealso cref="BDC_SetTriggerConfigParams(char const * serialNo, short channel, KMOT_TriggerPortMode trigger1Mode, KMOT_TriggerPortPolarity trigger1Polarity, KMOT_TriggerPortMode trigger2Mode, KMOT_TriggerPortPolarity trigger2Polarity)" />
+	/// <seealso cref="BDC_RequestTriggerConfigParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_SetTriggerConfigParamsBlock(char const * serialNo, short channel, KMOT_TriggerConfig *triggerConfigParams);
+
+	/// <summary>Requests the trigger parameters. </summary>
+	/// <param name="serialNo"> The serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerParams(char const * serialNo, short channel, __int32 *triggerStartPositionFwd, __int32 *triggerIntervalFwd, __int32 *triggerPulseCountFwd, __int32 *triggerStartPositionRev, __int32 *triggerIntervalRev, __int32 *triggerPulseCountRev, __int32 *triggerPulseWidth, __int32 *cycleCount)" />
+	/// <seealso cref="BDC_GetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_SetTriggerParams(char const * serialNo, short channel, __int32 triggerStartPositionFwd, __int32 triggerIntervalFwd, __int32 triggerPulseCountFwd, __int32 triggerStartPositionRev, __int32 triggerIntervalRev, __int32 triggerPulseCountRev, __int32 triggerPulseWidth, __int32 cycleCount)" />
+	/// <seealso cref="BDC_SetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_RequestTriggerParams(char const * serialNo, short channel);
+
+	/// <summary> Gets the trigger parameters. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="triggerStartPositionFwd"> The trigger start position in \ref DeviceUnits_page. </param>
+	/// <param name="triggerIntervalFwd">	    The trigger interval in \ref DeviceUnits_page. </param>
+	/// <param name="triggerPulseCountFwd">    Number of trigger pulses. </param>
+	/// <param name="triggerStartPositionRev"> The trigger start position in \ref DeviceUnits_page. </param>
+	/// <param name="triggerIntervalRev">	    The trigger interval in \ref DeviceUnits_page. </param>
+	/// <param name="triggerPulseCountRev">    Number of trigger pulses. </param>
+	/// <param name="triggerPulseWidth">    Width of the trigger pulse in milliseconds, range 1 (1us) to 1000000 (1s). </param>
+	/// <param name="cycleCount">   Number of cycles to perform triggering. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_SetTriggerParams(char const * serialNo, short channel, __int32 triggerStartPositionFwd, __int32 triggerIntervalFwd, __int32 triggerPulseCountFwd, __int32 triggerStartPositionRev, __int32 triggerIntervalRev, __int32 triggerPulseCountRev, __int32 triggerPulseWidth, __int32 cycleCount)" />
+	/// <seealso cref="BDC_SetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_RequestTriggerParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_GetTriggerParams(char const * serialNo, short channel, __int32 *triggerStartPositionFwd, __int32 *triggerIntervalFwd, __int32 *triggerPulseCountFwd, __int32 *triggerStartPositionRev, __int32 *triggerIntervalRev, __int32 *triggerPulseCountRev, __int32 *triggerPulseWidth, __int32 *cycleCount);
+
+	/// <summary> Gets the trigger parameters block. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="triggerParams"> Options for controlling the trigger parameters. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerParams(char const * serialNo, short channel, __int32 *triggerStartPositionFwd, __int32 *triggerIntervalFwd, __int32 *triggerPulseCountFwd, __int32 *triggerStartPositionRev, __int32 *triggerIntervalRev, __int32 *triggerPulseCountRev, __int32 *triggerPulseWidth, __int32 *cycleCount)" />
+	/// <seealso cref="BDC_SetTriggerParams(char const * serialNo, short channel, __int32 triggerStartPositionFwd, __int32 triggerIntervalFwd, __int32 triggerPulseCountFwd, __int32 triggerStartPositionRev, __int32 triggerIntervalRev, __int32 triggerPulseCountRev, __int32 triggerPulseWidth, __int32 cycleCount)" />
+	/// <seealso cref="BDC_SetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_RequestTriggerParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_GetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams);
+
+	/// <summary> Sets the trigger parameters. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="triggerStartPositionFwd"> The trigger start position in \ref DeviceUnits_page. </param>
+	/// <param name="triggerIntervalFwd">	    The trigger interval in \ref DeviceUnits_page. </param>
+	/// <param name="triggerPulseCountFwd">    Number of trigger pulses. </param>
+	/// <param name="triggerStartPositionRev"> The trigger start position in \ref DeviceUnits_page. </param>
+	/// <param name="triggerIntervalRev">	    The trigger interval in \ref DeviceUnits_page. </param>
+	/// <param name="triggerPulseCountRev">    Number of trigger pulses. </param>
+	/// <param name="triggerPulseWidth">    Width of the trigger pulse in milliseconds, range 1 (1us) to 1000000 (1s). </param>
+	/// <param name="cycleCount">   Number of cycles to perform triggering. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerParams(char const * serialNo, short channel, __int32 *triggerStartPositionFwd, __int32 *triggerIntervalFwd, __int32 *triggerPulseCountFwd, __int32 *triggerStartPositionRev, __int32 *triggerIntervalRev, __int32 *triggerPulseCountRev, __int32 *triggerPulseWidth, __int32 *cycleCount)" />
+	/// <seealso cref="BDC_GetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_SetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_RequestTriggerParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_SetTriggerParams(char const * serialNo, short channel, __int32 triggerStartPositionFwd, __int32 triggerIntervalFwd, __int32 triggerPulseCountFwd, __int32 triggerStartPositionRev, __int32 triggerIntervalRev, __int32 triggerPulseCountRev, __int32 triggerPulseWidth, __int32 cycleCount);
+
+	/// <summary> Sets the trigger parameters block. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="channel">	The channel. </param>
+	/// <param name="triggerParams"> Options for controlling the trigger parameters. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="BDC_GetTriggerParams(char const * serialNo, short channel, __int32 *triggerStartPositionFwd, __int32 *triggerIntervalFwd, __int32 *triggerPulseCountFwd, __int32 *triggerStartPositionRev, __int32 *triggerIntervalRev, __int32 *triggerPulseCountRev, __int32 *triggerPulseWidth, __int32 *cycleCount)" />
+	/// <seealso cref="BDC_GetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams)" />
+	/// <seealso cref="BDC_SetTriggerParams(char const * serialNo, short channel, __int32 triggerStartPositionFwd, __int32 triggerIntervalFwd, __int32 triggerPulseCountFwd, __int32 triggerStartPositionRev, __int32 triggerIntervalRev, __int32 triggerPulseCountRev, __int32 triggerPulseWidth, __int32 cycleCount)" />
+	/// <seealso cref="BDC_RequestTriggerParams(char const * serialNo, short channel)" />
+	BENCHTOPDCSERVO_API short __cdecl BDC_SetTriggerParamsBlock(char const * serialNo, short channel, KMOT_TriggerParams *triggerParams);
+
 }
 /** @} */ // BenchtopDCServo

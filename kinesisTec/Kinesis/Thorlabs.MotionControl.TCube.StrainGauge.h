@@ -33,7 +33,7 @@
  */
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 	
 	/// <summary> Values that represent FT_Status. </summary>
 	typedef enum FT_Status : short
@@ -58,7 +58,7 @@ extern "C"
 		MOT_BrushlessMotor = 3, /// <A Brushless DC Motor.
 		MOT_CustomMotor = 100, /// <A custom motor
 	} MOT_MotorTypes;
-	/// \endcond
+/// \endcond
 
 	/// <summary> Information about the device generated from serial number. </summary>
 	#pragma pack(1)
@@ -69,7 +69,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -107,21 +107,21 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
-		/// <summary> The device hardware version. </summary>
-		WORD hardwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
 		/// <summary> The device dependant data. </summary>
 		BYTE deviceDependantData[12];
+		/// <summary> The device hardware version. </summary>
+		WORD hardwareVersion;
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
 	/// <summary> Values that represent Hub Analogue Output Modes. </summary>
@@ -293,6 +293,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	TCUBESTRAINGAUGE_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	TCUBESTRAINGAUGE_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	TCUBESTRAINGAUGE_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the device to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -356,6 +369,13 @@ extern "C"
 	/// <returns> <c>true</c> if successful, false if not. </returns>
     /// 		  \include CodeSnippet_connection1.cpp
 	TCUBESTRAINGAUGE_API bool __cdecl SG_LoadSettings(char const * serialNo);
+
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	TCUBESTRAINGAUGE_API bool __cdecl SG_LoadNamedSettings(char const * serialNo, char const *settingsName);
 
 	/// <summary> persist the devices current settings. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
@@ -574,14 +594,15 @@ extern "C"
 	/// <seealso cref="SG_StartPolling(char const * serialNo, int milliseconds)" />
 	TCUBESTRAINGAUGE_API short __cdecl SG_RequestReading(char const * serialNo);
 
+	/// \deprecated
 	/// <summary> Gets the current reading. </summary>
-	/// <remarks> @deprecated superceded by <see cref="SG_GetReadingExt(char const * serialNo, bool clipped, bool *overrange)"/> </remarks>
+	/// <remarks> superceded by <see cref="SG_GetReadingExt(char const * serialNo, bool clipped, bool *overrange)"/> </remarks>
 	/// <param name="serialNo"> The device serial no. </param>
 	/// <param name="smoothed"> not used. </param>
 	/// <returns> The reading, which is mode dependent, see <see cref="SG_GetDisplayMode(char const * serialNo)" /><br />
 	///			  The range is +/- 32767 which corresponds to +/- 100% of maximum value, see table.
 	/// 		  <list type=table>
-	///				<item><term>Position</term><term>Reading is the percentage of Max Travel (microns) <see cref="SG_GetMaximumTravel(char const * serialNo)" /> </term></item>
+	///				<item><term>Position</term><term>Reading is the percentage of Max Travel (micrometres) <see cref="SG_GetMaximumTravel(char const * serialNo)" /> </term></item>
 	///				<item><term>Voltage</term><term>Reading is the percentage of Max Voltage (V)</term></item>
 	///				<item><term>Force</term><term>Reading is the percentage of Max Force (N) <see cref="SG_GetForceCalib(char const * serialNo)" /></term></item>
 	/// 		  </list> </returns>
@@ -603,7 +624,7 @@ extern "C"
 	/// <returns> The reading, which is mode dependent, see <see cref="SG_GetDisplayMode(char const * serialNo)" /><br />
 	///			  The range if clipped is +/- 32767 which corresponds to +/- 100% of maximum value, see table.
 	/// 		  <list type=table>
-	///				<item><term>Position</term><term>Reading is the percentage of Max Travel (microns) <see cref="SG_GetMaximumTravel(char const * serialNo)" /> </term></item>
+	///				<item><term>Position</term><term>Reading is the percentage of Max Travel (micrometres) <see cref="SG_GetMaximumTravel(char const * serialNo)" /> </term></item>
 	///				<item><term>Voltage</term><term>Reading is the percentage of Max Voltage (V)</term></item>
 	///				<item><term>Force</term><term>Reading is the percentage of Max Force (N) <see cref="SG_GetForceCalib(char const * serialNo)" /></term></item>
 	/// 		  </list> </returns>

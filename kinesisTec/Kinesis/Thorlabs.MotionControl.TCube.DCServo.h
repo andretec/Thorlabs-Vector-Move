@@ -149,10 +149,26 @@ extern "C"
 	/// <summary> Values that represent MOT_LimitsSoftwareApproachPolicy. </summary>
 	typedef enum MOT_LimitsSoftwareApproachPolicy : __int16
 	{
-		DisallowIllegalMoves = 0,///<Disable any move outside travel range
-		AllowPartialMoves,///<Truncate all moves beyond limit to limit.
-		AllowAllMoves,///<Allow all moves, illegal or not
+		DisallowIllegalMoves = 0,///<Disable any move outside of the current travel range of the stage
+		AllowPartialMoves,///<Truncate moves to within the current travel range of the stage.
+		AllowAllMoves,///<Allow all moves, regardless of whether they are within the current travel range of the stage.
 	} MOT_LimitsSoftwareApproachPolicy;
+
+	/// <summary> Values that represent DeviceMessageClass message types. </summary>
+	typedef enum MOT_MovementModes
+	{
+		LinearRange = 0x00,///< Fixed Angular Range defined by MinPosition and MaxPosition
+		RotationalUnlimited = 0x01,///< Unlimited angle
+		RotationalWrapping = 0x02,///< Angular Range 0 to 360 with wrap around
+	} MOT_MovementModes;
+
+	/// <summary> Values that represent DeviceMessageClass message types. </summary>
+	typedef enum MOT_MovementDirections
+	{
+		Quickest = 0x00,///< Uses the shortest travel between two angles
+		Forwards = 0x01,///< Only rotate in a forward direction
+		Reverse = 0x02,///< Only rotate in a backward direction
+	} MOT_MovementDirections;
 	/// \endcond
 
 	/// <summary> Information about the device generated from serial number. </summary>
@@ -164,7 +180,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -201,22 +217,21 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
+		/// <summary> The device dependant data. </summary>
+		BYTE deviceDependantData[12];
 		/// <summary> The device hardware version. </summary>
 		WORD hardwareVersion;
-		/// <summary> The device dependant data. </summary>
-		/// <remarks> TDC001, bytes 10 and 11 hold actuator ident val</remarks>
-		BYTE deviceDependantData[12];
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
 	/// <summary> Structure containing the velocity parameters. </summary>
@@ -385,7 +400,8 @@ extern "C"
 		int proportionalGain;
 		/// <summary> The PID Integral Gain. </summary>
 		int integralGain;
-		/// <summary> The PID Differential Gain. </summary>
+		/// <summary> The PID Derivative Gain. </summary>
+		/// <remarks> Kept as differentialGain rather than derivativeGain for backward compatibility</remarks>
 		int differentialGain;
 		/// <summary> The PID Integral Limit. </summary>
 		int integralLimit;
@@ -394,7 +410,7 @@ extern "C"
 		/// 		 <list type=table>
 		///				<item><term>Bit 1 (0x01)</term><term>When set, enable Proportional Gain component.</term></item>
 		///				<item><term>Bit 2 (0x02)</term><term>When set, enable Integral Gain component.</term></item>
-		///				<item><term>Bit 3 (0x04)</term><term>When set, enable Differential Gain component.</term></item>
+		///				<item><term>Bit 3 (0x04)</term><term>When set, enable Derivative Gain component.</term></item>
 		///				<item><term>Bit 4 (0x08)</term><term>When set, enable Integral Limit component.</term></item>
 		/// 		  </list> </remarks>
 		WORD parameterFilter;
@@ -531,6 +547,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	TCUBEDCSERVO_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	TCUBEDCSERVO_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	TCUBEDCSERVO_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the device to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -616,6 +645,14 @@ extern "C"
     /// 		  \include CodeSnippet_connection1.cpp
 	TCUBEDCSERVO_API bool __cdecl CC_LoadSettings(char const * serialNo);
 
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	TCUBEDCSERVO_API bool __cdecl CC_LoadNamedSettings(char const * serialNo, char const *settingsName);
+
+
 	/// <summary> Update device with stored settings. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <returns> <c>true</c> if successful, false if not. </returns>
@@ -656,8 +693,8 @@ extern "C"
 	/// <seealso cref="CC_SetVelParams(char const * serialNo, int acceleration, int maxVelocity)" />
 	/// <seealso cref="CC_GetPosition(char const * serialNo)" />
 	/// <seealso cref="CC_GetVelParams(char const * serialNo, int * acceleration, int * maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
-	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
+	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	/// <seealso cref="CC_MoveRelative(char const * serialNo, int displacement)" />
 	/// <seealso cref="CC_MoveAtVelocity(char const * serialNo, MOT_TravelDirection direction)" />
     /// 		  \include CodeSnippet_move.cpp
@@ -680,8 +717,9 @@ extern "C"
 	/// <returns> <c>true</c> if the device can home. </returns>
 	TCUBEDCSERVO_API bool __cdecl CC_CanHome(char const * serialNo);
 
+	/// \deprecated
 	/// <summary> Does the device need to be Homed before a move can be performed. </summary>
-	/// <remarks> @deprecated superceded by <see cref="CC_CanMoveWithoutHomingFirst(char const * serialNo)"/> </remarks>
+	/// <remarks> superceded by <see cref="CC_CanMoveWithoutHomingFirst(char const * serialNo)"/> </remarks>
 	/// <param name="serialNo"> The serial no. </param>
 	/// <returns> <c>true</c> if the device needs homing. </returns>
 	TCUBEDCSERVO_API bool __cdecl CC_NeedsHoming(char const * serialNo);
@@ -783,8 +821,8 @@ extern "C"
 	/// <seealso cref="CC_GetNumberPositions(char const * serialNo)" />
 	/// <seealso cref="CC_GetVelParams(char const * serialNo, int * acceleration, int * maxVelocity)" />
 	/// <seealso cref="CC_SetVelParams(char const * serialNo, int acceleration, int maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
-	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
+	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	/// <seealso cref="CC_MoveToPosition(char const * serialNo, int index)" />
 	/// <seealso cref="CC_MoveAtVelocity(char const * serialNo, MOT_TravelDirection direction)" />
     /// 		  \include CodeSnippet_move.cpp
@@ -943,7 +981,7 @@ extern "C"
 	/// <param name="serialNo"> The serial no. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_GetVelParams(char const * serialNo, int * acceleration, int * maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	TCUBEDCSERVO_API short __cdecl CC_RequestVelParams(char const * serialNo);
 
 	/// <summary> Gets the move velocity parameters. </summary>
@@ -954,8 +992,8 @@ extern "C"
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_RequestVelParams(char const * serialNo)" />
 	/// <seealso cref="CC_SetVelParams(char const * serialNo, int acceleration, int maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
-	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
+	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	/// <seealso cref="CC_MoveToPosition(char const * serialNo, int index)" />
 	/// <seealso cref="CC_MoveRelative(char const * serialNo, int displacement)" />
 	/// <seealso cref="CC_MoveAtVelocity(char const * serialNo, MOT_TravelDirection direction)" />
@@ -969,8 +1007,8 @@ extern "C"
 	/// <param name="maxVelocity"> The new maximum velocity value in \ref DeviceUnits_page. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_GetVelParams(char const * serialNo, int * acceleration, int * maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
-	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
+	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	/// <seealso cref="CC_MoveToPosition(char const * serialNo, int index)" />
 	/// <seealso cref="CC_MoveRelative(char const * serialNo, int displacement)" />
 	/// <seealso cref="CC_MoveAtVelocity(char const * serialNo, MOT_TravelDirection direction)" />
@@ -988,8 +1026,8 @@ extern "C"
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_GetVelParams(char const * serialNo, int * acceleration, int * maxVelocity)" />
 	/// <seealso cref="CC_SetVelParams(char const * serialNo, int acceleration, int maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
-	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
+	/// <seealso cref="CC_SetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	/// <seealso cref="CC_MoveToPosition(char const * serialNo, int index)" />
 	/// <seealso cref="CC_MoveRelative(char const * serialNo, int displacement)" />
     /// 		  \include CodeSnippet_move.cpp
@@ -1153,10 +1191,9 @@ extern "C"
 	/// <summary> Gets the software limits mode. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <returns>	The software limits mode <list type=table>
-	///							<item><term> Disable any move outside travel range. </term><term>0</term></item>
-	///							<item><term> Disable any move outside travel range, but allow moves 'just beyond limit' to be truncated to limit. </term><term>1</term></item>
-	///							<item><term> Truncate all moves beyond limit to the current limit. </term><term>2</term></item>
-	///							<item><term> Allow all moves, illegal or not. </term><term>3</term></item>
+	///							<item><term> Disable any move outside of the current travel range of the stage. </term><term>0</term></item>
+	///							<item><term> Truncate moves to within the current travel range of the stage. </term><term>1</term></item>
+	///							<item><term> Allow all moves, regardless of whether they are within the current travel range of the stage. </term><term>2</term></item>
 	/// 		  </list>. </returns>
 	/// <returns> The software limits mode. </returns>
 	/// <seealso cref="CC_SetLimitsSoftwareApproachPolicy(const char * serialNo, MOT_LimitsSoftwareApproachPolicy limitsSoftwareApproachPolicy)" />
@@ -1166,11 +1203,10 @@ extern "C"
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="limitsSoftwareApproachPolicy"> The soft limit mode
 	/// 					 <list type=table>
-	///							<item><term> Disable any move outside travel range. </term><term>0</term></item>
-	///							<item><term> Disable any move outside travel range, but allow moves 'just beyond limit' to be truncated to limit. </term><term>1</term></item>
-	///							<item><term> Truncate all moves beyond limit to the current limit. </term><term>2</term></item>
-	///							<item><term> Allow all moves, illegal or not. </term><term>3</term></item>
-	/// 					 </list> <remarks> If these are bitwise-ORed with 0x0080 then the limits are swapped. </remarks> </param>
+	///							<item><term> Disable any move outside of the current travel range of the stage. </term><term>0</term></item>
+	///							<item><term> Truncate moves to within the current travel range of the stage. </term><term>1</term></item>
+	///							<item><term> Allow all moves, regardless of whether they are within the current travel range of the stage. </term><term>2</term></item>
+	/// 					 </list> </param>
 	/// <seealso cref="CC_GetSoftLimitMode(const char * serialNo)" />
 	TCUBEDCSERVO_API void __cdecl CC_SetLimitsSoftwareApproachPolicy(char const * serialNo, MOT_LimitsSoftwareApproachPolicy limitsSoftwareApproachPolicy);
 
@@ -1269,7 +1305,7 @@ extern "C"
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_GetVelParams(char const * serialNo, int * acceleration, int * maxVelocity)" />
 	/// <seealso cref="CC_SetVelParams(char const * serialNo, int acceleration, int maxVelocity)" />
-	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters  *velocityParams)" />
+	/// <seealso cref="CC_GetVelParamsBlock(char const * serialNo, MOT_VelocityParameters * velocityParams)" />
 	/// <seealso cref="CC_MoveToPosition(char const * serialNo, int index)" />
 	/// <seealso cref="CC_MoveRelative(char const * serialNo, int displacement)" />
 	/// <seealso cref="CC_MoveAtVelocity(char const * serialNo, MOT_TravelDirection direction)" />
@@ -1457,25 +1493,25 @@ extern "C"
 	/// <summary> Requests the PID parameters for DC motors used in an algorithm involving calculus. </summary>
 	/// <param name="serialNo"> The serial no. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="CC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams)" />
-	/// <seealso cref="CC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams)" />
+	/// <seealso cref="CC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams)" />
+	/// <seealso cref="CC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams)" />
 	TCUBEDCSERVO_API short __cdecl CC_RequestDCPIDParams(char const * serialNo);
 
 	/// <summary> Get the DC PID parameters. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="DCproportionalIntegralDifferentialParams"> [in,out] If non-null, a variable-length parameters list containing DC PID parameters. </param>
+	/// <param name="DCproportionalIntegralDerivativeParams"> [in,out] If non-null, a variable-length parameters list containing DC PID parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_RequestDCPIDParams(char const * serialNo)" />
-	/// <seealso cref="CC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams)" />
-	TCUBEDCSERVO_API short __cdecl CC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams);
+	/// <seealso cref="CC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams)" />
+	TCUBEDCSERVO_API short __cdecl CC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams);
 
 	/// <summary> Set the PID parameters for DC motors used in an algorithm involving calculus. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="DCproportionalIntegralDifferentialParams"> [in,out] If non-null, a variable-length parameters list containing DC PID parameters. </param>
+	/// <param name="DCproportionalIntegralDerivativeParams"> [in,out] If non-null, a variable-length parameters list containing DC PID parameters. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_RequestDCPIDParams(char const * serialNo)" />
-	/// <seealso cref="CC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams)" />
-	TCUBEDCSERVO_API short __cdecl CC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDifferentialParams);
+	/// <seealso cref="CC_GetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams)" />
+	TCUBEDCSERVO_API short __cdecl CC_SetDCPIDParams(const char * serialNo, MOT_DC_PIDParameters *DCproportionalIntegralDerivativeParams);
 
 
 	/// <summary> Suspend automatic messages at ends of moves. </summary>
@@ -1625,6 +1661,12 @@ extern "C"
 	TCUBEDCSERVO_API int __cdecl CC_GetStageAxisMaxPos(char const * serialNo);
 
 	/// <summary> Sets the stage axis position limits. </summary>
+	/// <remarks> This function sets the limits of travel for the stage.<Br />
+	/// 		  The implementation will depend upon the nature of the travel being requested and the Soft Limits mode which can be obtained using <see cref="CC_GetSoftLimitMode(char const * serialNo)" />. <Br />
+	/// 		  <B>MoveAbsolute</B>, <B>MoveRelative</B> and <B>Jog (Single Step)</B> will obey the Soft Limit Mode.
+	/// 		  If the target position is outside the limits then either a full move, a partial move or no move will occur.<Br />
+	/// 		  <B>Jog (Continuous)</B> and <B>Move Continuous</B> will attempt to obey the limits, but as these moves rely on position information feedback from the device to detect if the travel is exceeding the limits, the device will stop, but it is likely to overshoot the limit, especially at high velocity.<Br />
+	/// 		  <B>Home</B> will always ignore the software limits.</remarks>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="minPosition"> The minimum position in \ref DeviceUnits_page. </param>
 	/// <param name="maxPosition"> The maximum position in \ref DeviceUnits_page. </param>
@@ -1654,8 +1696,9 @@ extern "C"
 	/// <seealso cref="CC_SetMotorTravelMode(char const * serialNo, int travelMode)" />
 	TCUBEDCSERVO_API MOT_TravelModes __cdecl CC_GetMotorTravelMode(char const * serialNo);
 
+	/// \deprecated
 	/// <summary> Sets the motor stage parameters. </summary>
-	/// <remarks> @deprecated superceded by <see cref="CC_SetMotorParamsExt(char const * serialNo, double stepsPerRevolution, double gearboxRatio, double pitch)"/> </remarks>
+	/// <remarks> superceded by <see cref="CC_SetMotorParamsExt(char const * serialNo, double stepsPerRevolution, double gearboxRatio, double pitch)"/> </remarks>
 	/// <remarks> These parameters, when combined define the stage motion in terms of \ref RealWorldUnits_page. (mm or degrees)<br />
 	/// 		  The real world unit is defined from stepsPerRev * gearBoxRatio / pitch.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
@@ -1666,8 +1709,9 @@ extern "C"
 	/// <seealso cref="CC_GetMotorParams(char const * serialNo, long *stepsPerRev, long *gearBoxRatio, float *pitch)" />
 	TCUBEDCSERVO_API short __cdecl CC_SetMotorParams(char const * serialNo, long stepsPerRev, long gearBoxRatio, float pitch);
 
+	/// \deprecated
 	/// <summary> Gets the motor stage parameters. </summary>
-	/// <remarks> @deprecated superceded by <see cref="CC_GetMotorParamsExt(char const * serialNo, double *stepsPerRevolution, double *gearboxRatio, double *pitch)"/> </remarks>
+	/// <remarks> superceded by <see cref="CC_GetMotorParamsExt(char const * serialNo, double *stepsPerRevolution, double *gearboxRatio, double *pitch)"/> </remarks>
 	/// <remarks> These parameters, when combined define the stage motion in terms of \ref RealWorldUnits_page. (mm or degrees)<br />
 	/// 		  The real world unit is defined from stepsPerRev * gearBoxRatio / pitch.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
@@ -1700,41 +1744,76 @@ extern "C"
 	/// <seealso cref="CC_SetMotorParamsExt(char const * serialNo, long stepsPerRev, long gearBoxRatio, float pitch)" />
 	TCUBEDCSERVO_API short __cdecl CC_GetMotorParamsExt(char const * serialNo, double *stepsPerRev, double *gearBoxRatio, double *pitch);
 
-	/// <summary> Sets the motor stage maximum velocity and acceleration. </summary>
+	/// \deprecated
+	/// <summary> Sets the absolute maximum velocity and acceleration constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current stage parameters.<Br />
+    ///           The absolute maximum velocity and acceleration constants are initialized from the stage settings..</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="maxVelocity">  The maximum velocity in real world units. </param>
-	/// <param name="maxAcceleration"> The maximum acceleration in real world units. </param>
+	/// <param name="maxVelocity">  The absolute maximum velocity in real world units. </param>
+	/// <param name="maxAcceleration"> The absolute maximum acceleration in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="CC_GetMotorTravelLimits(char const * serialNo, double *minPosition, double *maxPosition)" />
+	/// <seealso cref="CC_GetMotorVelocityLimits(char const * serialNo, double *maxVelocity, double *maxAcceleration)" />
 	TCUBEDCSERVO_API short __cdecl CC_SetMotorVelocityLimits(char const * serialNo, double maxVelocity, double maxAcceleration);
 
-	/// <summary> Gets the motor stage maximum velocity and acceleration. </summary>
+	/// <summary> Gets the absolute maximum velocity and acceleration constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current stage parameters.<Br />
+    ///           The absolute maximum velocity and acceleration constants are initialized from the stage settings..</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="maxVelocity">  Address of the parameter to receive the maximum velocity in real world units. </param>
-	/// <param name="maxAcceleration"> Address of the parameter to receive the maximum acceleration in real world units. </param>
+	/// <param name="maxVelocity">  Address of the parameter to receive the absolute maximum velocity in real world units. </param>
+	/// <param name="maxAcceleration"> Address of the parameter to receive the absolute maximum acceleration in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="CC_SetMotorTravelLimits(char const * serialNo, double minPosition, double maxPosition)" />
+	/// <seealso cref="CC_SetMotorVelocityLimits(char const * serialNo, double maxVelocity, double maxAcceleration)" />
 	TCUBEDCSERVO_API short __cdecl CC_GetMotorVelocityLimits(char const * serialNo, double *maxVelocity, double *maxAcceleration);
 
-	/// <summary> Sets the motor stage min and max position. </summary>
-	/// <remarks> These define the range of travel for the stage.</remarks>
+	/// <summary>	Reset the rotation modes for a rotational device. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="minPosition">  The minimum position in real world units. </param>
-	/// <param name="maxPosition"> The maximum position in real world units. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="CC_SetRotationModes(char const * serialNo, MOT_MovementModes mode, MOT_MovementDirections direction)" />
+	TCUBEDCSERVO_API short __cdecl CC_ResetRotationModes(char const * serialNo);
+
+	/// <summary>	Set the rotation modes for a rotational device. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="mode">	The rotation mode.<list type=table>
+	///								<item><term>Linear Range (Fixed Limit, cannot rotate)</term><term>0</term></item>
+	///								<item><term>RotationalUnlimited (Ranges between +/- Infinity)</term><term>1</term></item>
+	///								<item><term>Rotational Wrapping (Ranges between 0 to 360 with wrapping)</term><term>2</term></item>
+	/// 						  </list> </param>
+	/// <param name="direction"> The rotation direction when moving between two angles.<list type=table>
+	///								<item><term>Quickets (Always takes the shortedt path)</term><term>0</term></item>
+	///								<item><term>Forwards (Always moves forwards)</term><term>1</term></item>
+	///								<item><term>Backwards (Always moves backwards)</term><term>2</term></item>
+	/// 						  </list> </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="CC_ResetRotationModes(char const * serialNo)" />
+	TCUBEDCSERVO_API short __cdecl CC_SetRotationModes(char const * serialNo, MOT_MovementModes mode, MOT_MovementDirections direction);
+
+	/// \deprecated
+	/// <summary> Sets the absolute minimum and maximum travel range constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current travel range of the stage.<Br />
+    ///           The absolute minimum and maximum travel range constants are initialized from the stage settings. These values can be adjusted to relative positions based upon the Home Offset.<Br />
+    ///           <Br />
+    ///           To set the working travel range of the stage use the function <see cref="CC_SetStageAxisLimits(char const * serialNo, int minPosition, int maxPosition)" /><Br />
+    ///           Use the following to convert between real worl and device units.<Br />
+    ///           <see cref="CC_GetRealValueFromDeviceUnit(char const * serialNo, int device_unit, double *real_unit, int unitType)" /><Br />
+    ///           <see cref="CC_GetDeviceUnitFromRealValue(char const * serialNo, double real_unit, int *device_unit, int unitType)" /> </remarks>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="minPosition">  The absolute minimum position in real world units. </param>
+	/// <param name="maxPosition"> The absolute maximum position in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_GetMotorTravelLimits(char const * serialNo, double *minPosition, double *maxPosition)" />
 	TCUBEDCSERVO_API short __cdecl CC_SetMotorTravelLimits(char const * serialNo, double minPosition, double maxPosition);
 
-	/// <summary> Gets the motor stage min and max position. </summary>
-	/// <remarks> These define the range of travel for the stage.</remarks>
+	/// <summary> Gets the absolute minimum and maximum travel range constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current travel range of the stage.<Br />
+    ///           The absolute minimum and maximum travel range constants are initialized from the stage settings. These values can be adjusted to relative positions based upon the Home Offset.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="minPosition">  Address of the parameter to receive the minimum position in real world units. </param>
-	/// <param name="maxPosition"> Address of the parameter to receive the maximum position in real world units. </param>
+	/// <param name="minPosition">  Address of the parameter to receive the absolute minimum position in real world units. </param>
+	/// <param name="maxPosition"> Address of the parameter to receive the absolute maximum position in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="CC_SetMotorTravelLimits(char const * serialNo, double minPosition, double maxPosition)" />
 	TCUBEDCSERVO_API short __cdecl CC_GetMotorTravelLimits(char const * serialNo, double *minPosition, double *maxPosition);
 
-	/// <summary>	Converts a devic unit to a real worl unit. </summary>
+	/// <summary>	Converts a device unit to a real world unit. </summary>
 	/// <param name="serialNo">   	The serial no. </param>
 	/// <param name="device_unit">	The device unit. </param>
 	/// <param name="real_unit">  	The real unit. </param>
@@ -1747,7 +1826,7 @@ extern "C"
 	/// <seealso cref="CC_GetDeviceUnitFromRealValue(char const * serialNo, double real_unit, int *device_unit, int unitType)" />
 	TCUBEDCSERVO_API short __cdecl CC_GetRealValueFromDeviceUnit(char const * serialNo, int device_unit, double *real_unit, int unitType);
 
-	/// <summary>	Converts a devic unit to a real worl unit. </summary>
+	/// <summary>	Converts a device unit to a real world unit. </summary>
 	/// <param name="serialNo">   	The serial no. </param>
 	/// <param name="device_unit">	The device unit. </param>
 	/// <param name="real_unit">  	The real unit. </param>

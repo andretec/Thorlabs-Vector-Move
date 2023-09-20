@@ -33,7 +33,7 @@
  */
 extern "C"
 {
-	/// \cond NOT_MASTER
+/// \cond NOT_MASTER
 
 	/// <summary> Values that represent FT_Status. </summary>
 	typedef enum FT_Status : short
@@ -74,6 +74,32 @@ extern "C"
 		MOT_Forwards = 0x01,///<Move in a Forward direction
 		MOT_Backwards = 0x02,///<Move in a Backward / Reverse direction
 	} MOT_TravelDirection;
+
+	/// <summary> Values that represent TST101 Stage Idents. </summary>
+	typedef enum KST_Stages : short
+	{
+		ZST6 = 0x20, ///< ZST6.
+		ZST13 = 0x21, ///< ZST13.
+		ZST25 = 0x22, ///< ZST25.
+
+		ZST206 = 0x30, ///< ZST206.
+		ZST213 = 0x31, ///< ZST213.
+		ZST225 = 0x32, ///< ZST225.
+
+		ZFS206 = 0x40, ///< ZFS206.
+		ZFS213 = 0x41, ///< ZFS213.
+		ZFS225 = 0x42, ///< ZFS225.
+
+        DRV013_25MM   = 0x50, ///< DRV013 13mm.
+        DRV014_50MM   = 0x51, ///< DRV014 25mm.
+
+		NR360 = 0x70, ///< NR360.
+
+		PLS_X25MM = 0x72, ///< PLS_X.
+		PLS_X25MM_HiRes = 0x73, ///< PLS_X HiRes.
+
+		FW103 = 0x75, ///< FW103.
+	} KST_Stages;
 
 	/// <summary> Values that represent Limit Switch Directions. </summary>
 	typedef enum MOT_HomeLimitSwitchDirection : short
@@ -138,25 +164,25 @@ extern "C"
 	/// <summary> Values that represent MOT_LimitsSoftwareApproachPolicy. </summary>
 	typedef enum MOT_LimitsSoftwareApproachPolicy : __int16
 	{
-		DisallowIllegalMoves = 0,///<Disable any move outside travel range
-		AllowPartialMoves,///<Truncate all moves beyond limit to limit.
-		AllowAllMoves,///<Allow all moves, illegal or not
+		DisallowIllegalMoves = 0,///<Disable any move outside of the current travel range of the stage
+		AllowPartialMoves,///<Truncate moves to within the current travel range of the stage.
+		AllowAllMoves,///<Allow all moves, regardless of whether they are within the current travel range of the stage.
 	} MOT_LimitsSoftwareApproachPolicy;
 
-	/// <summary> Values that represent Joystick Direction Sense. </summary>
-	typedef enum KMOT_JoystickDirectionSense : __int16
+	/// <summary> Values that represent Wheel Direction Sense. </summary>
+	typedef enum KMOT_WheelDirectionSense : __int16
 	{
-		KMOT_JS_Positive = 0x01,///< Move at constant velocity
-		KMOT_JS_Negative = 0x02,///< Phase B
-	} KMOT_JoystickDirectionSense;
+		KMOT_WM_Positive = 0x01,///< Move at constant velocity
+		KMOT_WM_Negative = 0x02,///< Phase B
+	} KMOT_WheelDirectionSense;
 
-	/// <summary> Values that represent the Joystick Mode. </summary>
-	typedef enum KMOT_JoyStickMode : __int16
+	/// <summary> Values that represent the Wheel Mode. </summary>
+	typedef enum KMOT_WheelMode : __int16
 	{
-		KMOT_JS_Velocity = 0x01,///< Move at constant velocity
-		KMOT_JS_Jog = 0x02,///< Phase B
-		KMOT_JS_MoveAbsolute = 0x03,///< Phase A and B
-	} KMOT_JoyStickMode;
+		KMOT_WM_Velocity = 0x01,///< Move at constant velocity
+		KMOT_WM_Jog = 0x02,///< Phase B
+		KMOT_WM_MoveAbsolute = 0x03,///< Phase A and B
+	} KMOT_WheelMode;
 
 	/// <summary> Values that represent Trigger Port Mode. </summary>
 	typedef enum KMOT_TriggerPortMode : __int16
@@ -166,6 +192,7 @@ extern "C"
 		KMOT_TrigIn_RelativeMove = 0x02,///< Move relative using relative move parameters
 		KMOT_TrigIn_AbsoluteMove = 0x03,///< Move absolute using absolute move parameters
 		KMOT_TrigIn_Home = 0x04,///< Perform a Home action
+		KMOT_TrigIn_Stop = 0x05,///< Perform a Stop Immediate action
 		KMOT_TrigOut_GPO = 0x0A,///< General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)
 		KMOT_TrigOut_InMotion = 0x0B,///< Set when device moving
 		KMOT_TrigOut_AtMaxVelocity = 0x0C,///< Set when at max velocity
@@ -187,7 +214,23 @@ extern "C"
 		MOT_PIDOpenLoopMode = 0x01,///<Encoder is in open loop mode
 		MOT_PIDClosedLoopMode = 0x02,///<Encoder is in closed loop mode
 	} MOT_PID_LoopMode;
-	/// \endcond
+
+	/// <summary> Values that represent DeviceMessageClass message types. </summary>
+	typedef enum MOT_MovementModes
+	{
+		LinearRange = 0x00,///< Fixed Angular Range defined by MinPosition and MaxPosition
+		RotationalUnlimited = 0x01,///< Unlimited angle
+		RotationalWrapping = 0x02,///< Angular Range 0 to 360 with wrap around
+	} MOT_MovementModes;
+
+	/// <summary> Values that represent DeviceMessageClass message types. </summary>
+	typedef enum MOT_MovementDirections
+	{
+		Quickest = 0x00,///< Uses the shortest travel between two angles
+		Forwards = 0x01,///< Only rotate in a forward direction
+		Reverse = 0x02,///< Only rotate in a backward direction
+	} MOT_MovementDirections;
+/// \endcond
 
 	/// <summary> Information about the device generated from serial number. </summary>
 	#pragma pack(1)
@@ -198,7 +241,7 @@ extern "C"
 		/// <summary> The device description. </summary>
 		char description[65];
 		/// <summary> The device serial number. </summary>
-		char serialNo[9];
+		char serialNo[16];
 		/// <summary> The USB PID number. </summary>
 		DWORD PID;
 
@@ -235,21 +278,21 @@ extern "C"
 		/// <summary> The device model number. </summary>
 		/// <remarks> The model number uniquely identifies the device type as a string. </remarks>
 		char modelNumber[8];
-		/// <summary> The device type. </summary>
-		/// <remarks> Each device type has a unique Type ID: see \ref C_DEVICEID_page "Device serial numbers" </remarks>
+		/// <summary> The type. </summary>
+		/// <remarks> Do not use this value to identify a particular device type. Please use <see cref="TLI_DeviceInfo"/> typeID for this purpose.</remarks>
 		WORD type;
-		/// <summary> The number of channels the device provides. </summary>
-		short numChannels;
-		/// <summary> The device notes read from the device. </summary>
-		char notes[48];
 		/// <summary> The device firmware version. </summary>
 		DWORD firmwareVersion;
-		/// <summary> The device hardware version. </summary>
-		WORD hardwareVersion;
+		/// <summary> The device notes read from the device. </summary>
+		char notes[48];
 		/// <summary> The device dependant data. </summary>
 		BYTE deviceDependantData[12];
+		/// <summary> The device hardware version. </summary>
+		WORD hardwareVersion;
 		/// <summary> The device modification state. </summary>
 		WORD modificationState;
+		/// <summary> The number of channels the device provides. </summary>
+		short numChannels;
 	} TLI_HardwareInformation;
 
 	/// <summary> Structure containing the velocity parameters. </summary>
@@ -385,22 +428,22 @@ extern "C"
 	/// <value> Device GUI parameters. </value>
 	typedef struct KMOT_MMIParams
 	{
-		/// <summary> The joystick mode. </summary>
-		/// <remarks> The joystick mode is one of the following:
+		/// <summary> The wheel mode. </summary>
+		/// <remarks> The wheel mode is one of the following:
 		/// 		  <list type=table>
-		///				<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the joystick action</term></item>
-		///				<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the joystick action.<br />
+		///				<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the wheel action</term></item>
+		///				<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the wheel action.<br />
 		///					  The device will jog according to the Jog parameters</term></item>
-		///				<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the joystick action.</term></item>
+		///				<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the wheel action.</term></item>
 		/// 		  </list>
 		/// 		  </remarks>
-		KMOT_JoyStickMode JoystickMode;
-		/// <summary> The joystick maximum velocity. </summary>
-		__int32 JoystickMaxVelocity; 
-		/// <summary> The joystick acceleration. </summary>
-		__int32 JoystickAcceleration; 
-		/// <summary> The joystick direction sense. </summary>
-		MOT_DirectionSense JoystickDirectionSense;
+		KMOT_WheelMode WheelMode;
+		/// <summary> The wheel maximum velocity. </summary>
+		__int32 WheelMaxVelocity; 
+		/// <summary> The wheel acceleration. </summary>
+		__int32 WheelAcceleration; 
+		/// <summary> The wheel direction sense. </summary>
+		MOT_DirectionSense WheelDirectionSense;
 		/// <summary> The first preset position in encoder counts. </summary>
 		__int32 PresetPos1; 
 		/// <summary> The second preset position in encoder counts. </summary>
@@ -426,6 +469,7 @@ extern "C"
 		///				<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
 		///				<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
 		///				<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+		///				<item><term>5</term><term>Trigger Input - Perform a Stop action.<Br />Currently only supported on KST101</term></item>
 		///				<item><term>10</term><term>Trigger Output - General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
 		///				<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
 		///				<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
@@ -450,6 +494,7 @@ extern "C"
 		///				<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
 		///				<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
 		///				<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+		///				<item><term>5</term><term>Trigger Input - Perform a Stop action.<Br />Currently only supported on KST101</term></item>
 		///				<item><term>10</term><term>Trigger Output - General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
 		///				<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
 		///				<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
@@ -466,6 +511,8 @@ extern "C"
 		/// 		  </list>
 		/// 		  </remarks>
 		KMOT_TriggerPortPolarity Trigger2Polarity;
+		/// <summary> reserved fields. </summary>
+		__int16 reserved[6];
 	} KMOT_TriggerConfig;
 
 	/// <summary> KCube motor trigger output configuration. </summary>
@@ -504,20 +551,16 @@ extern "C"
 		/// 		  </list>
 		/// 		  </remarks>
 		MOT_PID_LoopMode loopMode;
-		/// <summary> The Encoder PID Loop proportional gain. </summary>
-		/// <remarks> Range 0 to 2^24</remarks>
+		/// <summary> The Encoder PID Loop proportional gain. Range 0 to 2^24</summary>
 		int proportionalGain;
-		/// <summary> The Encoder PID Loop integral gain. </summary>
-		/// <remarks> Range 0 to 2^24</remarks>
+		/// <summary> The Encoder PID Loop integral gain. Range 0 to 2^24</summary>
 		int integralGain;
-		/// <summary> The Encoder PID Loop differential gain. </summary>
-		/// <remarks> Range 0 to 2^24</remarks>
+		/// <summary> The Encoder PID Loop derivative gain. Range 0 to 2^24</summary>
+		/// <remarks> Kept as differentialGain rather than derivativeGain for backward compatibility</remarks>
 		int differentialGain;
-		/// <summary> The Encoder PID Loop output limit. </summary>
-		/// <remarks> Range 0 to 2^15</remarks>
+		/// <summary> The Encoder PID Loop output limit. Range 0 to 2^15</summary>
 		int PIDOutputLimit;
-		/// <summary> The Encoder PID Loop tolerance. </summary>
-		/// <remarks> Range 0 to 2^15</remarks>
+		/// <summary> The Encoder PID Loop tolerance. Range 0 to 2^15</summary>
 		int PIDTolerance;
 	} MOT_PIDLoopEncoderParams;
 	#pragma pack()
@@ -651,6 +694,19 @@ extern "C"
 	/// <seealso cref="TLI_GetDeviceListByTypesExt(char *receiveBuffer, DWORD sizeOfBuffer, int * typeIDs, int length)" />
 	KCUBESTEPPER_API short __cdecl TLI_GetDeviceInfo(char const * serialNo, TLI_DeviceInfo *info);
 
+	/// <summary> Initialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <remarks> Call TLI_InitializeSimulations before TLI_BuildDeviceList at the start of the program to make a connection to the simulation manager.<Br />
+	/// 		  Any devices configured in the simulation manager will become visible TLI_BuildDeviceList is called and can be accessed using TLI_GetDeviceList.<Br />
+	/// 		  Call TLI_InitializeSimulations at the end of the program to release the simulator.  </remarks>
+	/// <seealso cref="TLI_UninitializeSimulations()" />
+	/// <seealso cref="TLI_BuildDeviceList()" />
+	/// <seealso cref="TLI_GetDeviceList(SAFEARRAY** stringsReceiver)" />
+	KCUBESTEPPER_API void __cdecl TLI_InitializeSimulations();
+
+	/// <summary> Uninitialize a connection to the Simulation Manager, which must already be running. </summary>
+	/// <seealso cref="TLI_InitializeSimulations()" />
+	KCUBESTEPPER_API void __cdecl TLI_UninitializeSimulations();
+
 	/// <summary> Open the device for communications. </summary>
 	/// <param name="serialNo">	The serial no of the device to be connected. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
@@ -673,6 +729,33 @@ extern "C"
 	/// <summary> Sends a command to the device to make it identify iteself. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	KCUBESTEPPER_API void __cdecl SCC_Identify(char const * serialNo);
+
+	/// <summary>	Sets the stage type. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="stageId">	Identifier for the stage. 
+	/// 		 <list type=table>
+	/// 		<item><term>0x20</term><term>ZST6.</term></item>
+	///			<item><term>0x21</term><term>ZST13.</term></item>
+	///			<item><term>0x22</term><term>ZST25.</term></item>
+	///
+	///			<item><term>0x30</term><term>ZST206.</term></item>
+	///			<item><term>0x31</term><term>ZST213.</term></item>
+	///			<item><term>0x32</term><term>ZST225.</term></item>
+	///
+	///			<item><term>0x40</term><term>ZFS206.</term></item>
+	///			<item><term>0x41</term><term>ZFS213.</term></item>
+	///			<item><term>0x42</term><term>ZFS225.</term></item>
+	///
+	///			<item><term>0x70</term><term>NR360.</term></item>
+	///			
+	///			<item><term>0x72</term><term>PLS_X.</term></item>
+	///			<item><term>0x73</term><term>PLS_X HiRes.</term></item>
+	///
+	///			<item><term>0x75</term><term>FW103.</term></item>
+	///
+	/// 		  </list></param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	KCUBESTEPPER_API short __cdecl SCC_SetStageType(char const * serialNo, KST_Stages stageId);
 
 	/// <summary> Gets the hardware information from the device. </summary>
 	/// <param name="serialNo">		    The device serial no. </param>
@@ -738,6 +821,13 @@ extern "C"
 	/// 		  \include CodeSnippet_connection1.cpp
 	KCUBESTEPPER_API bool __cdecl SCC_LoadSettings(char const * serialNo);
 
+	/// <summary> Update device with named settings. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="settingsName"> Name of settings stored away from device. </param>
+	/// <returns> <c>true</c> if successful, false if not. </returns>
+	///             \include CodeSnippet_connection1.cpp
+	KCUBESTEPPER_API bool __cdecl SCC_LoadNamedSettings(char const * serialNo, char const *settingsName);
+
 	/// <summary> persist the devices current settings. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <returns> <c>true</c> if successful, false if not. </returns>
@@ -756,6 +846,39 @@ extern "C"
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="SCC_DisableChannel(char const * serialNo)" />
 	KCUBESTEPPER_API short __cdecl SCC_EnableChannel(char const * serialNo);
+
+	/// <summary> Determine if the device front panel can be locked. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> True if we can lock the device front panel, false if not. </returns>
+	/// <seealso cref="SCC_GetFrontPanelLocked(char const * serialNo)" />
+	/// <seealso cref="SCC_RequestFrontPanelLocked(char const * serialNo)" />
+	/// <seealso cref="SCC_SetFrontPanelLock(char const * serialNo, bool locked)" />
+	KCUBESTEPPER_API bool __cdecl SCC_CanDeviceLockFrontPanel(char const * serialNo);
+
+	/// <summary> Query if the device front panel locked. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> True if the device front panel is locked, false if not. </returns>
+	/// <seealso cref="SCC_CanDeviceLockFrontPanel(char const * serialNo)" />
+	/// <seealso cref="SCC_RequestFrontPanelLocked(char const * serialNo)" />
+	/// <seealso cref="SCC_SetFrontPanelLock(char const * serialNo, bool locked)" />
+	KCUBESTEPPER_API bool __cdecl  SCC_GetFrontPanelLocked(char const * serialNo);
+
+	/// <summary> Ask the device if its front panel is locked. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="SCC_CanDeviceLockFrontPanel(char const * serialNo)" />
+	/// <seealso cref="SCC_GetFrontPanelLocked(char const * serialNo)" />
+	/// <seealso cref="SCC_SetFrontPanelLock(char const * serialNo, bool locked)" />
+	KCUBESTEPPER_API short __cdecl  SCC_RequestFrontPanelLocked(char const * serialNo);
+
+	/// <summary> Sets the device front panel lock state. </summary>
+	/// <param name="serialNo">	The device serial no. </param>
+	/// <param name="locked"> True to lock the device, false to unlock. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="SCC_CanDeviceLockFrontPanel(char const * serialNo)" />
+	/// <seealso cref="SCC_GetFrontPanelLocked(char const * serialNo)" />
+	/// <seealso cref="SCC_RequestFrontPanelLocked(char const * serialNo)" />
+	KCUBESTEPPER_API short __cdecl  SCC_SetFrontPanelLock(char const * serialNo, bool locked);
 
 	/// <summary> Get number of positions. </summary>
 	/// <remarks> The GetNumberPositions function will get the maximum position reachable by the device.<br />
@@ -803,8 +926,9 @@ extern "C"
 	/// <returns> <c>true</c> if the device can home. </returns>
 	KCUBESTEPPER_API bool __cdecl SCC_CanHome(char const * serialNo);
 
+	/// \deprecated
 	/// <summary> Does the device need to be Homed before a move can be performed. </summary>
-	/// <remarks> @deprecated superceded by <see cref="SCC_CanMoveWithoutHomingFirst(char const * serialNo)"/> </remarks>
+	/// <remarks> superceded by <see cref="SCC_CanMoveWithoutHomingFirst(char const * serialNo)"/> </remarks>
 	/// <param name="serialNo"> The serial no. </param>
 	/// <returns> <c>true</c> if the device needs homing. </returns>
 	KCUBESTEPPER_API bool __cdecl SCC_NeedsHoming(char const * serialNo);
@@ -1124,6 +1248,7 @@ extern "C"
 	/// 		  This parameter will tell the system to reverse the direction sense whnd moving, jogging etc. </remarks>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="reverse"> if  <c>true</c> then directions will be swapped on these moves. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	KCUBESTEPPER_API void __cdecl SCC_SetDirection(char const * serialNo, bool reverse);
 
 	/// <summary> Stop the current move immediately (with risk of losing track of position). </summary>
@@ -1276,10 +1401,9 @@ extern "C"
 	/// <summary> Gets the software limits mode. </summary>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <returns>	The software limits mode <list type=table>
-	///							<item><term> Disable any move outside travel range. </term><term>0</term></item>
-	///							<item><term> Disable any move outside travel range, but allow moves 'just beyond limit' to be truncated to limit. </term><term>1</term></item>
-	///							<item><term> Truncate all moves beyond limit to the current limit. </term><term>2</term></item>
-	///							<item><term> Allow all moves, illegal or not. </term><term>3</term></item>
+	///							<item><term> Disable any move outside of the current travel range of the stage. </term><term>0</term></item>
+	///							<item><term> Truncate moves to within the current travel range of the stage. </term><term>1</term></item>
+	///							<item><term> Allow all moves, regardless of whether they are within the current travel range of the stage. </term><term>2</term></item>
 	/// 		  </list>. </returns>
 	/// <returns> The software limits mode. </returns>
 	/// <seealso cref="SCC_SetLimitsSoftwareApproachPolicy(const char * serialNo, MOT_LimitsSoftwareApproachPolicy limitsSoftwareApproachPolicy)" />
@@ -1289,11 +1413,10 @@ extern "C"
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="limitsSoftwareApproachPolicy"> The soft limit mode
 	/// 					 <list type=table>
-	///							<item><term> Disable any move outside travel range. </term><term>0</term></item>
-	///							<item><term> Disable any move outside travel range, but allow moves 'just beyond limit' to be truncated to limit. </term><term>1</term></item>
-	///							<item><term> Truncate all moves beyond limit to the current limit. </term><term>2</term></item>
-	///							<item><term> Allow all moves, illegal or not. </term><term>3</term></item>
-	/// 					 </list> <remarks> If these are bitwise-ORed with 0x0080 then the limits are swapped. </remarks> </param>
+	///							<item><term> Disable any move outside of the current travel range of the stage. </term><term>0</term></item>
+	///							<item><term> Truncate moves to within the current travel range of the stage. </term><term>1</term></item>
+	///							<item><term> Allow all moves, regardless of whether they are within the current travel range of the stage. </term><term>2</term></item>
+	/// 					 </list> </param>
 	/// <seealso cref="SCC_GetSoftLimitMode(const char * serialNo)" />
 	KCUBESTEPPER_API void __cdecl SCC_SetLimitsSoftwareApproachPolicy(char const * serialNo, MOT_LimitsSoftwareApproachPolicy limitsSoftwareApproachPolicy);
 
@@ -1307,64 +1430,65 @@ extern "C"
 
 	/// <summary> Get the MMI Parameters for the KCube Display Interface. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="joystickMode">	The device joystick mode.
+	/// <param name="wheelMode">	The device wheel mode.
 	/// 					<list type=table>
-	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the joystick action</term></item>
-	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the joystick action.<br />
+	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the wheel action</term></item>
+	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the wheel action.<br />
 	///								  The device will jog according to the Jog parameters</term></item>
-	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the joystick action.</term></item>
+	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the wheel action.</term></item>
 	/// 					</list> </param>
-	/// <param name="joystickMaxVelocity">  The joystick maximum velocity in \ref DeviceUnits_page. </param>
-	/// <param name="joystickAcceleration"> The joystick acceleration in \ref DeviceUnits_page. </param>
-	/// <param name="directionSense">	    The joystick direction sense. </param>
+	/// <param name="wheelMaxVelocity">  The wheel maximum velocity in \ref DeviceUnits_page. </param>
+	/// <param name="wheelAcceleration"> The wheel acceleration in \ref DeviceUnits_page. </param>
+	/// <param name="directionSense">	    The wheel direction sense. </param>
 	/// <param name="presetPosition1">	    The first preset position in \ref DeviceUnits_page. </param>
 	/// <param name="presetPosition2">	    The second preset position in \ref DeviceUnits_page. </param>
 	/// <param name="displayIntensity">	    The display intensity, range 0 to 100%. </param>
 	/// <param name="displayTimeout">	    The display timeout, range 0 to 480 in minutes (0 is off, otherwise the inactivity period before dimming the display). </param>
 	/// <param name="displayDimIntensity">	The display dimmed intensity, range 0 to 10 (after the timeout period the device display will dim). </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="SCC_SetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity)" />
+	/// <seealso cref="SCC_SetMMIParamsExt(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity)" />
 	/// <seealso cref="SCC_SetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
 	/// <seealso cref="SCC_RequestMMIParams(char const * serialNo)" />
 	/// <seealso cref="SCC_GetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
-	KCUBESTEPPER_API  short __cdecl SCC_GetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense,
+	KCUBESTEPPER_API  short __cdecl SCC_GetMMIParamsExt(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense,
 		__int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity);
 
+	/// \deprecated
 	/// <summary> Get the MMI Parameters for the KCube Display Interface. </summary>
-	/// <remarks> @deprecated superceded by <see cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)"/> </remarks>
+	/// <remarks> superceded by <see cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)"/> </remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="joystickMode">	The device joystick mode.
+	/// <param name="wheelMode">	The device wheel mode.
 	/// 					<list type=table>
-	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the joystick action</term></item>
-	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the joystick action.<br />
+	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the wheel action</term></item>
+	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the wheel action.<br />
 	///								  The device will jog according to the Jog parameters</term></item>
-	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the joystick action.</term></item>
+	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the wheel action.</term></item>
 	/// 					</list> </param>
-	/// <param name="joystickMaxVelocity">  The joystick maximum velocity in \ref DeviceUnits_page. </param>
-	/// <param name="joystickAcceleration"> The joystick acceleration in \ref DeviceUnits_page. </param>
-	/// <param name="directionSense">	    The joystick direction sense. </param>
+	/// <param name="wheelMaxVelocity">  The wheel maximum velocity in \ref DeviceUnits_page. </param>
+	/// <param name="wheelAcceleration"> The wheel acceleration in \ref DeviceUnits_page. </param>
+	/// <param name="directionSense">	    The wheel direction sense. </param>
 	/// <param name="presetPosition1">	    The first preset position in \ref DeviceUnits_page. </param>
 	/// <param name="presetPosition2">	    The second preset position in \ref DeviceUnits_page. </param>
 	/// <param name="displayIntensity">	    The display intensity, range 0 to 100%. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="SCC_SetMMIParams(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity)" />
+	/// <seealso cref="SCC_SetMMIParams(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity)" />
 	/// <seealso cref="SCC_SetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
 	/// <seealso cref="SCC_RequestMMIParams(char const * serialNo)" />
 	/// <seealso cref="SCC_GetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
-	KCUBESTEPPER_API  short __cdecl SCC_GetMMIParams(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense,
+	KCUBESTEPPER_API  short __cdecl SCC_GetMMIParams(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense,
 		__int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity);
 
 	/// <summary> Set the MMI Parameters for the KCube Display Interface. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="joystickMode">	The device joystick mode.
+	/// <param name="wheelMode">	The device wheel mode.
 	/// 					<list type=table>
-	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the joystick action</term></item>
-	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the joystick action.<br />
+	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the wheel action</term></item>
+	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the wheel action.<br />
 	///								  The device will jog according to the Jog parameters</term></item>
-	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the joystick action.</term></item>
+	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the wheel action.</term></item>
 	/// 					</list> </param>
-	/// <param name="joystickMaxVelocity">  The joystick maximum velocity in \ref DeviceUnits_page. </param>
-	/// <param name="joystickAcceleration"> The joystick acceleration in \ref DeviceUnits_page. </param>
+	/// <param name="wheelMaxVelocity">  The wheel maximum velocity in \ref DeviceUnits_page. </param>
+	/// <param name="wheelAcceleration"> The wheel acceleration in \ref DeviceUnits_page. </param>
 	/// <param name="directionSense">	    The direction sense. </param>
 	/// <param name="presetPosition1">	    The first preset position in \ref DeviceUnits_page. </param>
 	/// <param name="presetPosition2">	    The second preset position in \ref DeviceUnits_page. </param>
@@ -1372,35 +1496,36 @@ extern "C"
 	/// <param name="displayTimeout">	    The display timeout, range 0 to 480 in minutes (0 is off, otherwise the inactivity period before dimming the display). </param>
 	/// <param name="displayDimIntensity">	The display dimmed intensity, range 0 to 10 (after the timeout period the device display will dim). </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)" />
+	/// <seealso cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)" />
 	/// <seealso cref="SCC_SetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
 	/// <seealso cref="SCC_RequestMMIParams(char const * serialNo)" />
 	/// <seealso cref="SCC_GetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
-	KCUBESTEPPER_API short __cdecl SCC_SetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense,
+	KCUBESTEPPER_API short __cdecl SCC_SetMMIParamsExt(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense,
 		__int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity);
 
+	/// \deprecated
 	/// <summary> Set the MMI Parameters for the KCube Display Interface. </summary>
-	/// <remarks> @deprecated superceded by <see cref="SCC_SetMMIParams(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity)"/> </remarks>
+	/// <remarks> superceded by <see cref="SCC_SetMMIParams(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity)"/> </remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="joystickMode">	The device joystick mode.
+	/// <param name="wheelMode">	The device wheel mode.
 	/// 					<list type=table>
-	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the joystick action</term></item>
-	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the joystick action.<br />
+	///							<item><term>1</term><term>Constant Velocity<br />The device will continue moving until the end stop is reached or the duration of the wheel action</term></item>
+	///							<item><term>2</term><term>Jog<br />The device will jog forward or backward according to the wheel action.<br />
 	///								  The device will jog according to the Jog parameters</term></item>
-	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the joystick action.</term></item>
+	///							<item><term>3</term><term>Move Absolute<br />The device will move to either Preset Po 1 or 2 according to the wheel action.</term></item>
 	/// 					</list> </param>
-	/// <param name="joystickMaxVelocity">  The joystick maximum velocity in \ref DeviceUnits_page. </param>
-	/// <param name="joystickAcceleration"> The joystick acceleration in \ref DeviceUnits_page. </param>
+	/// <param name="wheelMaxVelocity">  The wheel maximum velocity in \ref DeviceUnits_page. </param>
+	/// <param name="wheelAcceleration"> The wheel acceleration in \ref DeviceUnits_page. </param>
 	/// <param name="directionSense">	    The direction sense. </param>
 	/// <param name="presetPosition1">	    The first preset position in \ref DeviceUnits_page. </param>
 	/// <param name="presetPosition2">	    The second preset position in \ref DeviceUnits_page. </param>
 	/// <param name="displayIntensity">	    The display intensity, range 0 to 100%. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="SCC_RequestMMIParams(char const * serialNo)" />
-	/// <seealso cref="SCC_GetMMIParams(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity)" />
+	/// <seealso cref="SCC_GetMMIParams(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity)" />
 	/// <seealso cref="SCC_SetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
 	/// <seealso cref="SCC_GetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
-	KCUBESTEPPER_API short __cdecl SCC_SetMMIParams(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense,
+	KCUBESTEPPER_API short __cdecl SCC_SetMMIParams(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense,
 		__int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity);
 
 	/// <summary> Requests the Trigger Configuration Parameters. </summary>
@@ -1420,6 +1545,7 @@ extern "C"
 	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
 	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
 	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop action.<Br />Currently only supported on KST101</term></item>
 	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
 	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
 	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
@@ -1436,6 +1562,7 @@ extern "C"
 	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
 	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
 	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop action.<Br />Currently only supported on KST101</term></item>
 	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
 	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
 	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
@@ -1461,6 +1588,7 @@ extern "C"
 	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
 	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
 	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop action.<Br />Currently only supported on KST101</term></item>
 	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
 	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
 	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
@@ -1477,6 +1605,7 @@ extern "C"
 	///						<item><term>2</term><term>Trigger Input - Move relative using relative move parameters</term></item>
 	///						<item><term>3</term><term>Trigger Input - Move absolute using absolute move parameters</term></item>
 	///						<item><term>4</term><term>Trigger Input - Perform a Home action</term></item>
+	///						<item><term>5</term><term>Trigger Input - Perform a Stop action.<Br />Currently only supported on KST101</term></item>
 	///						<item><term>10</term><term>Trigger Output - General purpose output (<see cref="SCC_SetDigitalOutputs(const char * serialNo, byte outputBits)"> SetDigitalOutputs</see>)</term></item>
 	///						<item><term>11</term><term>Trigger Output - Set when device moving</term></item>
 	///						<item><term>12</term><term>Trigger Output - Set when at max velocity</term></item>
@@ -1554,8 +1683,8 @@ extern "C"
 	/// <param name="mmiParams"> Options for controlling the mmi. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="SCC_RequestMMIParams(char const * serialNo)" />
-	/// <seealso cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)" />
-	/// <seealso cref="SCC_SetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity)" />
+	/// <seealso cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)" />
+	/// <seealso cref="SCC_SetMMIParamsExt(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity)" />
 	/// <seealso cref="SCC_SetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
 	KCUBESTEPPER_API short __cdecl SCC_GetMMIParamsBlock(char const * serialNo, KMOT_MMIParams *mmiParams);
 
@@ -1564,8 +1693,8 @@ extern "C"
 	/// <param name="mmiParams"> Options for controlling the mmi. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="SCC_RequestMMIParams(char const * serialNo)" />
-	/// <seealso cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode *joystickMode, __int32 *joystickMaxVelocity, __int32 *joystickAcceleration, KMOT_JoystickDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)" />
-	/// <seealso cref="SCC_SetMMIParamsExt(char const * serialNo, KMOT_JoyStickMode joystickMode, __int32 joystickMaxVelocity, __int32 joystickAcceleration, KMOT_JoystickDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity)" />
+	/// <seealso cref="SCC_GetMMIParamsExt(char const * serialNo, KMOT_WheelMode *wheelMode, __int32 *wheelMaxVelocity, __int32 *wheelAcceleration, KMOT_WheelDirectionSense *directionSense, __int32 *presetPosition1, __int32 *presetPosition2, __int16 *displayIntensity, __int16 *displayTimeout, __int16 *displayDimIntensity)" />
+	/// <seealso cref="SCC_SetMMIParamsExt(char const * serialNo, KMOT_WheelMode wheelMode, __int32 wheelMaxVelocity, __int32 wheelAcceleration, KMOT_WheelDirectionSense directionSense, __int32 presetPosition1, __int32 presetPosition2, __int16 displayIntensity, __int16 displayTimeout, __int16 displayDimIntensity)" />
 	/// <seealso cref="SCC_GetMMIParamsBlock(const char * serialNo, KMOT_MMIParams *mmiParams)" />
 	KCUBESTEPPER_API short __cdecl SCC_SetMMIParamsBlock(char const * serialNo, KMOT_MMIParams *mmiParams);
 
@@ -2045,6 +2174,12 @@ extern "C"
 	KCUBESTEPPER_API int __cdecl SCC_GetStageAxisMaxPos(char const * serialNo);
 
 	/// <summary> Sets the stage axis position limits. </summary>
+	/// <remarks> This function sets the limits of travel for the stage.<Br />
+	/// 		  The implementation will depend upon the nature of the travel being requested and the Soft Limits mode which can be obtained using <see cref="SCC_GetSoftLimitMode(char const * serialNo)" />. <Br />
+	/// 		  <B>MoveAbsolute</B>, <B>MoveRelative</B> and <B>Jog (Single Step)</B> will obey the Soft Limit Mode.
+	/// 		  If the target position is outside the limits then either a full move, a partial move or no move will occur.<Br />
+	/// 		  <B>Jog (Continuous)</B> and <B>Move Continuous</B> will attempt to obey the limits, but as these moves rely on position information feedback from the device to detect if the travel is exceeding the limits, the device will stop, but it is likely to overshoot the limit, especially at high velocity.<Br />
+	/// 		  <B>Home</B> will always ignore the software limits.</remarks>
 	/// <param name="serialNo">	The device serial no. </param>
 	/// <param name="minPosition"> The minimum position in \ref DeviceUnits_page. </param>
 	/// <param name="maxPosition"> The maximum position in \ref DeviceUnits_page. </param>
@@ -2074,8 +2209,9 @@ extern "C"
 	/// <seealso cref="SCC_SetMotorTravelMode(char const * serialNo, int travelMode)" />
 	KCUBESTEPPER_API MOT_TravelModes __cdecl SCC_GetMotorTravelMode(char const * serialNo);
 
+	/// \deprecated
 	/// <summary> Sets the motor stage parameters. </summary>
-	/// <remarks> @deprecated superceded by <see cref="SCC_SetMotorParamsExt(char const * serialNo, double stepsPerRevolution, double gearboxRatio, double pitch)"/> </remarks>
+	/// <remarks> superceded by <see cref="SCC_SetMotorParamsExt(char const * serialNo, double stepsPerRevolution, double gearboxRatio, double pitch)"/> </remarks>
 	/// <remarks> These parameters, when combined define the stage motion in terms of \ref RealWorldUnits_page. (mm or degrees)<br />
 	/// 		  The real world unit is defined from stepsPerRev * gearBoxRatio / pitch.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
@@ -2086,8 +2222,9 @@ extern "C"
 	/// <seealso cref="SCC_GetMotorParams(char const * serialNo, long *stepsPerRev, long *gearBoxRatio, float *pitch)" />
 	KCUBESTEPPER_API short __cdecl SCC_SetMotorParams(char const * serialNo, long stepsPerRev, long gearBoxRatio, float pitch);
 
+	/// \deprecated
 	/// <summary> Gets the motor stage parameters. </summary>
-	/// <remarks> @deprecated superceded by <see cref="SCC_GetMotorParamsExt(char const * serialNo, double *stepsPerRevolution, double *gearboxRatio, double *pitch)"/> </remarks>
+	/// <remarks> superceded by <see cref="SCC_GetMotorParamsExt(char const * serialNo, double *stepsPerRevolution, double *gearboxRatio, double *pitch)"/> </remarks>
 	/// <remarks> These parameters, when combined define the stage motion in terms of \ref RealWorldUnits_page. (mm or degrees)<br />
 	/// 		  The real world unit is defined from stepsPerRev * gearBoxRatio / pitch.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
@@ -2120,36 +2257,71 @@ extern "C"
 	/// <seealso cref="SCC_SetMotorParamsExt(char const * serialNo, long stepsPerRev, long gearBoxRatio, float pitch)" />
 	KCUBESTEPPER_API short __cdecl SCC_GetMotorParamsExt(char const * serialNo, double *stepsPerRev, double *gearBoxRatio, double *pitch);
 
-	/// <summary> Sets the motor stage maximum velocity and acceleration. </summary>
+	/// \deprecated
+	/// <summary> Sets the absolute maximum velocity and acceleration constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current stage parameters.<Br />
+    ///           The absolute maximum velocity and acceleration constants are initialized from the stage settings..</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="maxVelocity">  The maximum velocity in real world units. </param>
-	/// <param name="maxAcceleration"> The maximum acceleration in real world units. </param>
+	/// <param name="maxVelocity">  The absolute maximum velocity in real world units. </param>
+	/// <param name="maxAcceleration"> The absolute maximum acceleration in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="SCC_GetMotorTravelLimits(char const * serialNo, double *minPosition, double *maxPosition)" />
+	/// <seealso cref="SCC_GetMotorVelocityLimits(char const * serialNo, double *maxVelocity, double *maxAcceleration)" />
 	KCUBESTEPPER_API short __cdecl SCC_SetMotorVelocityLimits(char const * serialNo, double maxVelocity, double maxAcceleration);
 
-	/// <summary> Gets the motor stage maximum velocity and acceleration. </summary>
+	/// <summary> Gets the absolute maximum velocity and acceleration constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current stage parameters.<Br />
+    ///           The absolute maximum velocity and acceleration constants are initialized from the stage settings..</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="maxVelocity">  Address of the parameter to receive the maximum velocity in real world units. </param>
-	/// <param name="maxAcceleration"> Address of the parameter to receive the maximum acceleration in real world units. </param>
+	/// <param name="maxVelocity">  Address of the parameter to receive the absolute maximum velocity in real world units. </param>
+	/// <param name="maxAcceleration"> Address of the parameter to receive the absolute maximum acceleration in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
-	/// <seealso cref="SCC_SetMotorTravelLimits(char const * serialNo, double minPosition, double maxPosition)" />
+	/// <seealso cref="SCC_SetMotorVelocityLimits(char const * serialNo, double maxVelocity, double maxAcceleration)" />
 	KCUBESTEPPER_API short __cdecl SCC_GetMotorVelocityLimits(char const * serialNo, double *maxVelocity, double *maxAcceleration);
 
-	/// <summary> Sets the motor stage min and max position. </summary>
-	/// <remarks> These define the range of travel for the stage.</remarks>
+	/// <summary>	Reset the rotation modes for a rotational device. </summary>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="minPosition">  The minimum position in real world units. </param>
-	/// <param name="maxPosition"> The maximum position in real world units. </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="SCC_SetRotationModes(char const * serialNo, MOT_MovementModes mode, MOT_MovementDirections direction)" />
+	KCUBESTEPPER_API short __cdecl SCC_ResetRotationModes(char const * serialNo);
+
+	/// <summary>	Set the rotation modes for a rotational device. </summary>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="mode">	The rotation mode.<list type=table>
+	///								<item><term>Linear Range (Fixed Limit, cannot rotate)</term><term>0</term></item>
+	///								<item><term>RotationalUnlimited (Ranges between +/- Infinity)</term><term>1</term></item>
+	///								<item><term>Rotational Wrapping (Ranges between 0 to 360 with wrapping)</term><term>2</term></item>
+	/// 						  </list> </param>
+	/// <param name="direction"> The rotation direction when moving between two angles.<list type=table>
+	///								<item><term>Quickets (Always takes the shortedt path)</term><term>0</term></item>
+	///								<item><term>Forwards (Always moves forwards)</term><term>1</term></item>
+	///								<item><term>Backwards (Always moves backwards)</term><term>2</term></item>
+	/// 						  </list> </param>
+	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
+	/// <seealso cref="SCC_ResetRotationModes(char const * serialNo)" />
+	KCUBESTEPPER_API short __cdecl SCC_SetRotationModes(char const * serialNo, MOT_MovementModes mode, MOT_MovementDirections direction);
+
+	/// \deprecated
+	/// <summary> Sets the absolute minimum and maximum travel range constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current travel range of the stage.<Br />
+    ///           The absolute minimum and maximum travel range constants are initialized from the stage settings. These values can be adjusted to relative positions based upon the Home Offset.<Br />
+    ///           <Br />
+    ///           To set the working travel range of the stage use the function <see cref="SCC_SetStageAxisLimits(char const * serialNo, int minPosition, int maxPosition)" /><Br />
+    ///           Use the following to convert between real worl and device units.<Br />
+    ///           <see cref="SCC_GetRealValueFromDeviceUnit(char const * serialNo, int device_unit, double *real_unit, int unitType)" /><Br />
+    ///           <see cref="SCC_GetDeviceUnitFromRealValue(char const * serialNo, double real_unit, int *device_unit, int unitType)" /> </remarks>
+	/// <param name="serialNo"> The device serial no. </param>
+	/// <param name="minPosition">  The absolute minimum position in real world units. </param>
+	/// <param name="maxPosition"> The absolute maximum position in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="SCC_GetMotorTravelLimits(char const * serialNo, double *minPosition, double *maxPosition)" />
 	KCUBESTEPPER_API short __cdecl SCC_SetMotorTravelLimits(char const * serialNo, double minPosition, double maxPosition);
 
-	/// <summary> Gets the motor stage min and max position. </summary>
-	/// <remarks> These define the range of travel for the stage.</remarks>
+	/// <summary> Gets the absolute minimum and maximum travel range constants for the current stage. </summary>
+	/// <remarks> These parameters are maintained for user info only and do not reflect the current travel range of the stage.<Br />
+    ///           The absolute minimum and maximum travel range constants are initialized from the stage settings. These values can be adjusted to relative positions based upon the Home Offset.</remarks>
 	/// <param name="serialNo"> The device serial no. </param>
-	/// <param name="minPosition">  Address of the parameter to receive the minimum position in real world units. </param>
-	/// <param name="maxPosition"> Address of the parameter to receive the maximum position in real world units. </param>
+	/// <param name="minPosition">  Address of the parameter to receive the absolute minimum position in real world units. </param>
+	/// <param name="maxPosition"> Address of the parameter to receive the absolute maximum position in real world units. </param>
 	/// <returns> The error code (see \ref C_DLL_ERRORCODES_page "Error Codes") or zero if successful. </returns>
 	/// <seealso cref="SCC_SetMotorTravelLimits(char const * serialNo, double minPosition, double maxPosition)" />
 	KCUBESTEPPER_API short __cdecl SCC_GetMotorTravelLimits(char const * serialNo, double *minPosition, double *maxPosition);
@@ -2176,7 +2348,7 @@ extern "C"
 	/// <seealso cref="SCC_RequestDigitalOutputs(char const * serialNo)" />
 	KCUBESTEPPER_API short __cdecl SCC_SetDigitalOutputs(char const * serialNo, byte outputsBits);
 
-	/// <summary>	Converts a devic unit to a real worl unit. </summary>
+	/// <summary>	Converts a device unit to a real world unit. </summary>
 	/// <param name="serialNo">   	The serial no. </param>
 	/// <param name="device_unit">	The device unit. </param>
 	/// <param name="real_unit">  	The real unit. </param>
@@ -2189,7 +2361,7 @@ extern "C"
 	/// <seealso cref="SCC_GetDeviceUnitFromRealValue(char const * serialNo, double real_unit, int *device_unit, int unitType)" />
 	KCUBESTEPPER_API short __cdecl SCC_GetRealValueFromDeviceUnit(char const * serialNo, int device_unit, double *real_unit, int unitType);
 
-	/// <summary>	Converts a devic unit to a real worl unit. </summary>
+	/// <summary>	Converts a device unit to a real world unit. </summary>
 	/// <param name="serialNo">   	The serial no. </param>
 	/// <param name="device_unit">	The device unit. </param>
 	/// <param name="real_unit">  	The real unit. </param>

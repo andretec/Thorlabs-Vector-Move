@@ -1,8 +1,7 @@
 ; APT USB Driver.inf
-; Copyright © 2015 Thorlabs. 
-; Copyright © 2000-2015 Future Technology Devices International Limited
-; 
-; 
+; Copyright © 2015-2019 Thorlabs Ltd.
+; Copyright © 2000-2017 Future Technology Devices International Limited
+;
 
 [Version]
 Signature="$Windows NT$"
@@ -10,9 +9,9 @@ DriverPackageType=PlugAndPlay
 DriverPackageDisplayName=%DESC%
 Class=USB
 ClassGUID={36fc9e60-c465-11cf-8056-444553540000}
-Provider=%FTDI%
+Provider=%Ftdi%
 CatalogFile="APT USB Driver.cat"
-DriverVer=12/18/2015,2.12.10.1
+DriverVer=08/16/2017,2.12.28.1
 
 [SourceDisksNames]
 1=%DriversDisk%,"APT USB Driver.cab",,
